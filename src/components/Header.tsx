@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { CATEGORIES } from "@/lib/categories";
+import brandMark from "@/assets/brand-mark.png";
 
 export function Header() {
   const { count, setOpen } = useCart();
@@ -14,8 +15,8 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-2xl gradient-hero flex items-center justify-center shadow-soft group-hover:rotate-6 transition-transform">
-              <span className="text-lg">🧸</span>
+            <div className="w-10 h-10 rounded-2xl bg-blush flex items-center justify-center shadow-soft group-hover:rotate-6 transition-transform overflow-hidden">
+              <img src={brandMark} alt="Baby Fitters" width={40} height={40} className="w-8 h-8 object-contain" />
             </div>
             <div className="leading-none">
               <div className="font-display text-xl font-semibold text-foreground">Baby Fitters</div>
@@ -38,9 +39,6 @@ export function Header() {
                 {c.label}
               </Link>
             ))}
-            <Link to="/admin" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
-              Admin
-            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -94,13 +92,13 @@ export function Header() {
                     to="/category/$slug"
                     params={{ slug: c.slug }}
                     onClick={() => setMobile(false)}
-                    className="px-3 py-2 rounded-xl hover:bg-muted font-semibold flex items-center gap-2"
+                    className="px-3 py-2 rounded-xl hover:bg-muted font-semibold flex items-center gap-3"
                   >
-                    <span>{c.emoji}</span> {c.label}
+                    <img src={c.image} alt="" width={32} height={32} className="w-8 h-8 rounded-lg object-cover" />
+                    {c.label}
                   </Link>
                 ))}
                 <Link to="/search" onClick={() => setMobile(false)} className="px-3 py-2 rounded-xl hover:bg-muted font-semibold">Search</Link>
-                <Link to="/admin" onClick={() => setMobile(false)} className="px-3 py-2 rounded-xl hover:bg-muted font-semibold text-muted-foreground">Admin</Link>
               </div>
             </motion.nav>
           )}

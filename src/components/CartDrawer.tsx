@@ -3,6 +3,8 @@ import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/categories";
 import { Link } from "@tanstack/react-router";
+import { buildWhatsappCheckoutUrl } from "@/lib/whatsapp";
+import brandMark from "@/assets/brand-mark.png";
 
 export function CartDrawer() {
   const { items, open, setOpen, setQty, remove, subtotal, clear } = useCart();
@@ -41,8 +43,8 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12">
-                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl">
-                    🍼
+                  <div className="w-20 h-20 rounded-full bg-blush flex items-center justify-center overflow-hidden">
+                    <img src={brandMark} alt="" width={64} height={64} className="w-16 h-16 object-contain" />
                   </div>
                   <div>
                     <p className="font-display text-xl font-semibold">Your cart is empty</p>
@@ -63,7 +65,7 @@ export function CartDrawer() {
                         {i.image_url ? (
                           <img src={i.image_url} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-2xl">🧸</div>
+                          <img src={brandMark} alt="" width={48} height={48} className="w-12 h-12 m-auto object-contain" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -96,10 +98,16 @@ export function CartDrawer() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-semibold">{formatPrice(subtotal)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Shipping calculated at checkout.</p>
-                <button className="w-full py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
-                  Checkout — {formatPrice(subtotal)}
-                </button>
+                <p className="text-xs text-muted-foreground">You'll be redirected to WhatsApp to confirm your order.</p>
+                <a
+                  href={buildWhatsappCheckoutUrl(items, subtotal)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="w-full block text-center py-3 rounded-full bg-[#25D366] text-white font-semibold hover:opacity-90 transition-opacity shadow-pillow"
+                >
+                  Checkout via WhatsApp — {formatPrice(subtotal)}
+                </a>
                 <button onClick={clear} className="w-full py-2 text-sm text-muted-foreground hover:text-destructive transition-colors">
                   Clear cart
                 </button>
