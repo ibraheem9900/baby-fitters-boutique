@@ -9,20 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SecretPortalRouteImport } from './routes/secret-portal'
 import { Route as SearchRouteImport } from './routes/search'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 
+const SecretPortalRoute = SecretPortalRouteImport.update({
+  id: '/secret-portal',
+  path: '/secret-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,62 +43,67 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/search': typeof SearchRoute
+  '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/search': typeof SearchRoute
+  '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/search': typeof SearchRoute
+  '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
   '/product/$id': typeof ProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/search' | '/category/$slug' | '/product/$id'
+  fullPaths:
+    | '/'
+    | '/search'
+    | '/secret-portal'
+    | '/category/$slug'
+    | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/search' | '/category/$slug' | '/product/$id'
+  to: '/' | '/search' | '/secret-portal' | '/category/$slug' | '/product/$id'
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/search'
+    | '/secret-portal'
     | '/category/$slug'
     | '/product/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
   SearchRoute: typeof SearchRoute
+  SecretPortalRoute: typeof SecretPortalRoute
   CategorySlugRoute: typeof CategorySlugRoute
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/secret-portal': {
+      id: '/secret-portal'
+      path: '/secret-portal'
+      fullPath: '/secret-portal'
+      preLoaderRoute: typeof SecretPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -127,8 +132,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
   SearchRoute: SearchRoute,
+  SecretPortalRoute: SecretPortalRoute,
   CategorySlugRoute: CategorySlugRoute,
   ProductIdRoute: ProductIdRoute,
 }

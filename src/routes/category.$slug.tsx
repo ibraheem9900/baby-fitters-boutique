@@ -44,12 +44,16 @@ function CategoryPage() {
   return (
     <PageLayout>
       <section className={`${cat.tint} relative overflow-hidden`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <div className="text-6xl mb-4">{cat.emoji}</div>
-          <h1 className="font-display text-5xl sm:text-6xl">{cat.label}</h1>
-          <p className="mt-3 text-muted-foreground max-w-md mx-auto">
-            Carefully curated {cat.label.toLowerCase()} for the little stars in your life.
-          </p>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 className="font-display text-5xl sm:text-6xl">{cat.label}</h1>
+            <p className="mt-3 text-muted-foreground max-w-md">
+              Carefully curated {cat.label.toLowerCase()} for the little stars in your life.
+            </p>
+          </div>
+          <div className="rounded-3xl overflow-hidden shadow-pillow aspect-[4/3] bg-card">
+            <img src={cat.image} alt={cat.label} width={768} height={576} className="w-full h-full object-cover" />
+          </div>
         </div>
       </section>
 
@@ -76,9 +80,8 @@ function CategoryPage() {
 function EmptyState() {
   return (
     <div className="text-center py-20">
-      <div className="text-6xl mb-4">🌸</div>
-      <h2 className="font-display text-2xl">Nothing here yet</h2>
-      <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+      <h2 className="font-display text-3xl">Nothing here yet</h2>
+      <p className="text-muted-foreground mt-3 max-w-sm mx-auto">
         We're hand-picking new pieces for this category. Check back soon — or browse other collections.
       </p>
       <Link to="/" className="mt-6 inline-flex px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors">

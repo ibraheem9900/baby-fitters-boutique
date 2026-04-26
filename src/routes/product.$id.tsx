@@ -77,7 +77,7 @@ function ProductPage() {
               {product.image_url ? (
                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-9xl">🧸</div>
+                <div className="w-full h-full bg-blush" />
               )}
             </div>
           </motion.div>

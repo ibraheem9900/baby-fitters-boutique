@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/categories";
 import { Instagram, Facebook, Twitter } from "lucide-react";
+import brandMark from "@/assets/brand-mark.png";
 
 export function Footer() {
   return (
@@ -8,8 +9,8 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid gap-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-2xl gradient-hero flex items-center justify-center shadow-soft">
-              <span>🧸</span>
+            <div className="w-10 h-10 rounded-2xl bg-blush flex items-center justify-center shadow-soft overflow-hidden">
+              <img src={brandMark} alt="Baby Fitters" width={32} height={32} className="w-8 h-8 object-contain" />
             </div>
             <span className="font-display text-2xl font-semibold">Baby Fitters</span>
           </div>

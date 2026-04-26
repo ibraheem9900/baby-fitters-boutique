@@ -1,15 +1,103 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, X } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import { PageLayout } from "@/components/PageLayout";
+import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
 import { fetchProducts, type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
+import brandMark from "@/assets/brand-mark.png";
 
-export const Route = createFileRoute("/admin")({
-  component: AdminPage,
+export const Route = createFileRoute("/secret-portal")({
+  component: SecretPortal,
+  // No-index this route from the user-facing site
+  head: () => ({
+    meta: [
+      { title: "Portal" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
 });
+
+// Admin access code. Change this to rotate access.
+const ADMIN_ACCESS_CODE = "babyfitters2026";
+const AUTH_KEY = "baby-fitters-admin-auth";
+
+function SecretPortal() {
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setAuthed(typeof window !== "undefined" && sessionStorage.getItem(AUTH_KEY) === "1");
+  }, []);
+
+  if (authed === null) return null;
+  if (!authed) return <PasscodeGate onSuccess={() => setAuthed(true)} />;
+  return <AdminDashboard onLogout={() => { sessionStorage.removeItem(AUTH_KEY); setAuthed(false); }} />;
+}
+
+function PasscodeGate({ onSuccess }: { onSuccess: () => void }) {
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setTimeout(() => {
+      if (code === ADMIN_ACCESS_CODE) {
+        sessionStorage.setItem(AUTH_KEY, "1");
+        onSuccess();
+      } else {
+        setError("Invalid access code.");
+        setLoading(false);
+      }
+    }, 350);
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 gradient-soft">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-sm bg-card rounded-3xl border border-border shadow-pillow p-8"
+      >
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-blush flex items-center justify-center overflow-hidden">
+            <img src={brandMark} alt="" width={48} height={48} className="w-12 h-12 object-contain" />
+          </div>
+        </div>
+        <div className="text-center mb-6">
+          <h1 className="font-display text-2xl flex items-center justify-center gap-2">
+            <Lock className="w-5 h-5" /> Restricted Access
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Enter your admin access code to continue.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="password"
+            autoFocus
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Access code"
+            className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
+          />
+          {error && <p className="text-sm text-destructive text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading || !code}
+            className="w-full py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50"
+          >
+            {loading ? "Verifying..." : "Unlock"}
+          </button>
+        </form>
+        <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-primary mt-6">
+          ← Back to store
+        </Link>
+      </motion.div>
+    </div>
+  );
+}
 
 type FormState = {
   id?: string;
@@ -34,7 +122,7 @@ const emptyForm: FormState = {
   is_best_seller: false,
 };
 
-function AdminPage() {
+function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -132,9 +220,29 @@ function AdminPage() {
   }
 
   return (
-    <PageLayout>
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blush flex items-center justify-center overflow-hidden">
+              <img src={brandMark} alt="" width={28} height={28} className="w-7 h-7 object-contain" />
+            </div>
+            <div>
+              <p className="font-display font-semibold leading-none">Admin Portal</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Baby Fitters</p>
+            </div>
+          </div>
+          <button
+            onClick={onLogout}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors"
+          >
+            <LogOut className="w-4 h-4" /> Sign out
+          </button>
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
           <div>
             <p className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">Dashboard</p>
             <h1 className="font-display text-4xl sm:text-5xl mt-2">Manage products</h1>
@@ -238,7 +346,6 @@ function AdminPage() {
           <p className="text-muted-foreground">Loading...</p>
         ) : products.length === 0 ? (
           <div className="text-center py-20 bg-card rounded-3xl border border-border">
-            <div className="text-6xl mb-4">📦</div>
             <h2 className="font-display text-2xl">No products yet</h2>
             <p className="text-muted-foreground mt-2">Click "Add product" to create your first one.</p>
           </div>
@@ -260,11 +367,11 @@ function AdminPage() {
                     <tr key={p.id} className="border-t border-border hover:bg-muted/40 transition-colors">
                       <td className="px-4 py-3">
                         <Link to="/product/$id" params={{ id: p.id }} className="flex items-center gap-3 hover:text-primary">
-                          <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden flex-shrink-0">
+                          <div className="w-12 h-12 rounded-xl bg-blush overflow-hidden flex-shrink-0 flex items-center justify-center">
                             {p.image_url ? (
                               <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xl">🧸</div>
+                              <img src={brandMark} alt="" width={32} height={32} className="w-8 h-8 object-contain" />
                             )}
                           </div>
                           <span className="font-semibold">{p.name}</span>
@@ -311,7 +418,7 @@ function AdminPage() {
         }
         .input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-ring); }
       `}</style>
-    </PageLayout>
+    </div>
   );
 }
 
