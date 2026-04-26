@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_best_seller: boolean
+          is_featured: boolean
+          is_new_arrival: boolean
+          name: string
+          price: number
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_best_seller?: boolean
+          is_featured?: boolean
+          is_new_arrival?: boolean
+          name: string
+          price: number
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["product_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_best_seller?: boolean
+          is_featured?: boolean
+          is_new_arrival?: boolean
+          name?: string
+          price?: number
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +67,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      product_category:
+        | "baby_garments"
+        | "newborn_accessories"
+        | "baby_cosmetics"
+        | "baby_shoes"
+        | "baby_toys"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +199,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      product_category: [
+        "baby_garments",
+        "newborn_accessories",
+        "baby_cosmetics",
+        "baby_shoes",
+        "baby_toys",
+      ],
+    },
   },
 } as const
