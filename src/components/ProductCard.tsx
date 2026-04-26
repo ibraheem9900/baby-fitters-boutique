@@ -38,7 +38,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl bg-cream">🧸</div>
+            <div className="w-full h-full bg-blush" />
           )}
           {(product.is_new_arrival || product.is_best_seller) && (
             <div className="absolute top-3 left-3 flex flex-col gap-1.5">

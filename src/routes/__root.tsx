@@ -8,8 +8,7 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="text-7xl mb-4">🍼</div>
-        <h1 className="font-display text-5xl font-semibold text-foreground">404</h1>
+        <h1 className="font-display text-7xl font-semibold text-foreground">404</h1>
         <h2 className="mt-3 font-display text-xl">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.

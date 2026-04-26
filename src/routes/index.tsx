@@ -73,7 +73,7 @@ function HomePage() {
                 params={{ slug: "baby_toys" }}
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-card border border-border font-semibold hover:bg-muted transition-colors"
               >
-                Browse toys 🧸
+                Browse toys
               </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-6 text-sm">
@@ -104,7 +104,9 @@ function HomePage() {
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -top-4 -left-4 sm:-left-8 bg-card rounded-2xl shadow-pillow p-4 flex items-center gap-3 border border-border"
             >
-              <div className="w-10 h-10 rounded-full bg-mint flex items-center justify-center text-xl">⭐</div>
+              <div className="w-10 h-10 rounded-full bg-mint flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Loved by parents</p>
                 <p className="font-semibold text-sm">4.9/5 rating</p>
@@ -183,9 +185,9 @@ function HomePage() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { name: "Aisha M.", text: "The fabric is impossibly soft. My baby has the most sensitive skin and finally — no rashes!", emoji: "💕" },
-            { name: "Hassan R.", text: "Quality is unreal for the price. The little booties are the cutest thing we own.", emoji: "👶" },
-            { name: "Sara K.", text: "Fast shipping, beautiful packaging, and my daughter LOVES the teddy. Will be back!", emoji: "🧸" },
+            { name: "Aisha M.", text: "The fabric is impossibly soft. My baby has the most sensitive skin and finally — no rashes!" },
+            { name: "Hassan R.", text: "Quality is unreal for the price. The little booties are the cutest thing we own." },
+            { name: "Sara K.", text: "Fast shipping, beautiful packaging, and my daughter loves the teddy. Will be back!" },
           ].map((t, i) => (
             <motion.div
               key={i}
@@ -195,7 +197,11 @@ function HomePage() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="bg-card rounded-3xl p-8 border border-border shadow-soft"
             >
-              <div className="text-3xl mb-4">{t.emoji}</div>
+              <div className="flex gap-0.5 mb-4 text-primary">
+                {Array.from({ length: 5 }).map((_, s) => (
+                  <Sparkles key={s} className="w-4 h-4 fill-current" />
+                ))}
+              </div>
               <p className="text-foreground leading-relaxed italic">"{t.text}"</p>
               <div className="mt-6 flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full gradient-hero flex items-center justify-center font-semibold text-sm">
@@ -217,7 +223,6 @@ function HomePage() {
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-blush blur-2xl opacity-60" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-sky blur-2xl opacity-60" />
           <div className="relative max-w-xl mx-auto">
-            <div className="text-4xl mb-3">💌</div>
             <h2 className="font-display text-3xl sm:text-4xl">Join the cuddle club</h2>
             <p className="mt-3 text-muted-foreground">
               Subscribe for new arrivals, parenting tips, and a sweet 10% off your first order.
@@ -225,7 +230,7 @@ function HomePage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                toast.success("Welcome to the cuddle club! 💕", { description: "Check your inbox for your 10% off code." });
+                toast.success("Welcome to the cuddle club!", { description: "Check your inbox for your 10% off code." });
                 (e.target as HTMLFormElement).reset();
               }}
               className="mt-6 flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
