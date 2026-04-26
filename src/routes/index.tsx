@@ -142,11 +142,20 @@ function HomePage() {
               <Link
                 to="/category/$slug"
                 params={{ slug: c.slug }}
-                className={`${c.tint} group block rounded-3xl p-6 aspect-square flex flex-col justify-between hover:shadow-pillow transition-all duration-500 hover:-translate-y-1 border border-border`}
+                className={`${c.tint} group block rounded-3xl p-5 aspect-square flex flex-col justify-between hover:shadow-pillow transition-all duration-500 hover:-translate-y-1 border border-border overflow-hidden relative`}
               >
-                <div className="text-5xl group-hover:scale-110 transition-transform">{c.emoji}</div>
+                <div className="relative w-full aspect-square -mt-2 -mx-2 mb-2 rounded-2xl overflow-hidden bg-background/40 max-h-[60%]">
+                  <img
+                    src={c.image}
+                    alt={c.label}
+                    width={400}
+                    height={400}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
                 <div>
-                  <p className="font-display text-lg font-semibold leading-tight">{c.label}</p>
+                  <p className="font-display text-base font-semibold leading-tight">{c.label}</p>
                   <p className="text-xs mt-1 inline-flex items-center gap-1 text-muted-foreground group-hover:text-foreground transition-colors">
                     Shop now <ArrowRight className="w-3 h-3" />
                   </p>
