@@ -30,9 +30,9 @@ function HomePage() {
     };
   }, []);
 
-  const featured = (products ?? []).filter((p) => p.is_featured).slice(0, 8);
-  const newArrivals = (products ?? []).filter((p) => p.is_new_arrival).slice(0, 4);
-  const bestSellers = (products ?? []).filter((p) => p.is_best_seller).slice(0, 4);
+  const featured = (products ?? []).filter((p) => p.is_featured).slice(0, 6);
+  const discounted = (products ?? []).filter((p) => (p.discount_percent ?? 0) > 0).slice(0, 6);
+  const bestSellers = (products ?? []).filter((p) => p.is_best_seller).slice(0, 6);
 
   return (
     <PageLayout>
@@ -171,8 +171,8 @@ function HomePage() {
       {/* FEATURED */}
       <ProductSection title="Featured favorites" subtitle="Picked with love" products={featured} loading={products === null} />
 
-      {/* NEW ARRIVALS */}
-      <ProductSection title="New arrivals" subtitle="Fresh & adorable" products={newArrivals} loading={products === null} />
+      {/* DISCOUNTED */}
+      <ProductSection title="Discounted deals" subtitle="Sweet savings" products={discounted} loading={products === null} />
 
       {/* BEST SELLERS */}
       <ProductSection title="Best sellers" subtitle="Parent approved" products={bestSellers} loading={products === null} />
@@ -272,10 +272,10 @@ function ProductSection({
           <h2 className="font-display text-4xl sm:text-5xl mt-2">{title}</h2>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
         {loading
-          ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-          : products.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+          ? Array.from({ length: 3 }).map((_, i) => <ProductCardSkeleton key={i} />)
+          : products.slice(0, 3).map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
       </div>
     </section>
   );

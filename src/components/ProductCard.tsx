@@ -4,14 +4,16 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/categories";
-import type { Product } from "@/lib/products";
+import { discountedPrice, type Product } from "@/lib/products";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const { add, setOpen } = useCart();
+  const finalPrice = discountedPrice(product);
+  const hasDiscount = (product.discount_percent ?? 0) > 0;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    add({ id: product.id, name: product.name, price: product.price, image_url: product.image_url });
+    add({ id: product.id, name: product.name, price: finalPrice, image_url: product.image_url });
     toast.success(`${product.name} added to cart`, {
       action: { label: "View", onClick: () => setOpen(true) },
     });
@@ -39,6 +41,13 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             />
           ) : (
             <div className="w-full h-full bg-blush" />
+          )}
+          {hasDiscount && (
+            <div className="absolute top-3 right-3">
+              <span className="px-2.5 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold uppercase tracking-wider shadow-soft">
+                -{product.discount_percent}%
+              </span>
+            </div>
           )}
           {(product.is_new_arrival || product.is_best_seller) && (
             <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -69,7 +78,12 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
             {product.description ?? "Soft, safe and sweet."}
           </p>
-          <p className="font-display text-lg font-semibold mt-2">{formatPrice(product.price)}</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <p className="font-display text-lg font-semibold">{formatPrice(finalPrice)}</p>
+            {hasDiscount && (
+              <p className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</p>
+            )}
+          </div>
         </div>
       </Link>
     </motion.div>

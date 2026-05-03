@@ -109,6 +109,10 @@ type FormState = {
   is_featured: boolean;
   is_new_arrival: boolean;
   is_best_seller: boolean;
+  subcategory: string;
+  discount_percent: string;
+  gender: string;
+  age_group: string;
 };
 
 const emptyForm: FormState = {
@@ -120,6 +124,10 @@ const emptyForm: FormState = {
   is_featured: false,
   is_new_arrival: true,
   is_best_seller: false,
+  subcategory: "",
+  discount_percent: "0",
+  gender: "",
+  age_group: "",
 };
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
@@ -177,6 +185,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         is_featured: form.is_featured,
         is_new_arrival: form.is_new_arrival,
         is_best_seller: form.is_best_seller,
+        subcategory: form.subcategory || null,
+        discount_percent: parseInt(form.discount_percent || "0", 10) || 0,
+        gender: form.gender || null,
+        age_group: form.age_group || null,
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
@@ -214,6 +226,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       is_featured: p.is_featured,
       is_new_arrival: p.is_new_arrival,
       is_best_seller: p.is_best_seller,
+      subcategory: p.subcategory ?? "",
+      discount_percent: String(p.discount_percent ?? 0),
+      gender: p.gender ?? "",
+      age_group: p.age_group ?? "",
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -306,6 +322,51 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     <img src={form.image_url} alt="preview" className="w-12 h-12 rounded-xl object-cover border border-border" />
                   )}
                 </div>
+              </Field>
+              <Field label="Subcategory (optional)">
+                <input
+                  value={form.subcategory}
+                  onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+                  className="input"
+                  placeholder="e.g. Frocks, Feeders & Sippers"
+                />
+              </Field>
+              <Field label="Discount %">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={form.discount_percent}
+                  onChange={(e) => setForm({ ...form, discount_percent: e.target.value })}
+                  className="input"
+                  placeholder="0"
+                />
+              </Field>
+              <Field label="Gender">
+                <select
+                  value={form.gender}
+                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                  className="input"
+                >
+                  <option value="">—</option>
+                  <option value="boys">Boys</option>
+                  <option value="girls">Girls</option>
+                  <option value="newborn">New Born</option>
+                </select>
+              </Field>
+              <Field label="Age / Size">
+                <select
+                  value={form.age_group}
+                  onChange={(e) => setForm({ ...form, age_group: e.target.value })}
+                  className="input"
+                >
+                  <option value="">—</option>
+                  <option value="0-3m">0–3 Months</option>
+                  <option value="3-12m">3–12 Months</option>
+                  <option value="1-4y">1–4 Years</option>
+                  <option value="5-10y">5–10 Years</option>
+                  <option value="10+">10+ Above</option>
+                </select>
               </Field>
               <div className="md:col-span-2">
                 <Field label="Description">

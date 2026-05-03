@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SecretPortalRouteImport } from './routes/secret-portal'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SaleRouteImport } from './routes/sale'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
@@ -23,6 +25,16 @@ const SecretPortalRoute = SecretPortalRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaleRoute = SaleRouteImport.update({
+  id: '/sale',
+  path: '/sale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +55,8 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -50,6 +64,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -58,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
+  '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -67,15 +85,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/contact'
+    | '/sale'
     | '/search'
     | '/secret-portal'
     | '/category/$slug'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/secret-portal' | '/category/$slug' | '/product/$id'
+  to:
+    | '/'
+    | '/contact'
+    | '/sale'
+    | '/search'
+    | '/secret-portal'
+    | '/category/$slug'
+    | '/product/$id'
   id:
     | '__root__'
     | '/'
+    | '/contact'
+    | '/sale'
     | '/search'
     | '/secret-portal'
     | '/category/$slug'
@@ -84,6 +113,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContactRoute: typeof ContactRoute
+  SaleRoute: typeof SaleRoute
   SearchRoute: typeof SearchRoute
   SecretPortalRoute: typeof SecretPortalRoute
   CategorySlugRoute: typeof CategorySlugRoute
@@ -104,6 +135,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sale': {
+      id: '/sale'
+      path: '/sale'
+      fullPath: '/sale'
+      preLoaderRoute: typeof SaleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -132,6 +177,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContactRoute: ContactRoute,
+  SaleRoute: SaleRoute,
   SearchRoute: SearchRoute,
   SecretPortalRoute: SecretPortalRoute,
   CategorySlugRoute: CategorySlugRoute,

@@ -16,9 +16,12 @@ export type Database = {
     Tables: {
       products: {
         Row: {
+          age_group: string | null
           category: Database["public"]["Enums"]["product_category"]
           created_at: string
           description: string | null
+          discount_percent: number
+          gender: string | null
           id: string
           image_url: string | null
           is_best_seller: boolean
@@ -27,12 +30,16 @@ export type Database = {
           name: string
           price: number
           stock: number
+          subcategory: string | null
           updated_at: string
         }
         Insert: {
+          age_group?: string | null
           category: Database["public"]["Enums"]["product_category"]
           created_at?: string
           description?: string | null
+          discount_percent?: number
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_best_seller?: boolean
@@ -41,12 +48,16 @@ export type Database = {
           name: string
           price: number
           stock?: number
+          subcategory?: string | null
           updated_at?: string
         }
         Update: {
+          age_group?: string | null
           category?: Database["public"]["Enums"]["product_category"]
           created_at?: string
           description?: string | null
+          discount_percent?: number
+          gender?: string | null
           id?: string
           image_url?: string | null
           is_best_seller?: boolean
@@ -55,6 +66,7 @@ export type Database = {
           name?: string
           price?: number
           stock?: number
+          subcategory?: string | null
           updated_at?: string
         }
         Relationships: []
