@@ -109,6 +109,10 @@ type FormState = {
   is_featured: boolean;
   is_new_arrival: boolean;
   is_best_seller: boolean;
+  subcategory: string;
+  discount_percent: string;
+  gender: string;
+  age_group: string;
 };
 
 const emptyForm: FormState = {
@@ -120,6 +124,10 @@ const emptyForm: FormState = {
   is_featured: false,
   is_new_arrival: true,
   is_best_seller: false,
+  subcategory: "",
+  discount_percent: "0",
+  gender: "",
+  age_group: "",
 };
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
@@ -177,6 +185,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         is_featured: form.is_featured,
         is_new_arrival: form.is_new_arrival,
         is_best_seller: form.is_best_seller,
+        subcategory: form.subcategory || null,
+        discount_percent: parseInt(form.discount_percent || "0", 10) || 0,
+        gender: form.gender || null,
+        age_group: form.age_group || null,
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
