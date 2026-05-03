@@ -1,19 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
+import { FiltersPanel, applyFilters, defaultFilters, type FilterState } from "@/components/FiltersPanel";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
 import { fetchProducts, type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 
+type Search = { sub?: string };
+
 export const Route = createFileRoute("/category/$slug")({
   component: CategoryPage,
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    sub: typeof s.sub === "string" ? s.sub : undefined,
+  }),
 });
 
 function CategoryPage() {
   const { slug } = Route.useParams();
+  const { sub } = Route.useSearch();
   const cat = CATEGORIES.find((c) => c.slug === slug);
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
@@ -28,7 +36,22 @@ function CategoryPage() {
     };
   }, [slug]);
 
-  const filtered = (products ?? []).filter((p) => p.category === (slug as CategorySlug));
+  const inCategory = useMemo(
+    () => (products ?? []).filter((p) => p.category === (slug as CategorySlug) && (!sub || p.subcategory === sub)),
+    [products, slug, sub],
+  );
+
+  const priceBounds = useMemo(() => {
+    if (!inCategory.length) return { min: 0, max: 50000 };
+    const prices = inCategory.map((p) => p.price);
+    return { min: Math.min(...prices, 0), max: Math.max(...prices, 1000) };
+  }, [inCategory]);
+
+  useEffect(() => {
+    setFilters((f) => ({ ...f, maxPrice: priceBounds.max }));
+  }, [priceBounds.max]);
+
+  const filtered = applyFilters(inCategory, filters);
 
   if (!cat) {
     return (
@@ -47,6 +70,7 @@ function CategoryPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="font-display text-5xl sm:text-6xl">{cat.label}</h1>
+            {sub && <p className="mt-2 text-sm uppercase tracking-widest text-primary font-bold">{sub}</p>}
             <p className="mt-3 text-muted-foreground max-w-md">
               Carefully curated {cat.label.toLowerCase()} for the little stars in your life.
             </p>
@@ -57,21 +81,25 @@ function CategoryPage() {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {products === null ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground mb-6">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {filtered.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 grid lg:grid-cols-[280px_1fr] gap-8">
+        <FiltersPanel value={filters} onChange={setFilters} priceBounds={priceBounds} />
+
+        <div>
+          {products === null ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }).map((_, i) => <ProductCardSkeleton key={i} />)}
             </div>
-          </>
-        )}
+          ) : filtered.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground mb-6">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+                {filtered.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+              </div>
+            </>
+          )}
+        </div>
       </section>
     </PageLayout>
   );
@@ -79,10 +107,10 @@ function CategoryPage() {
 
 function EmptyState() {
   return (
-    <div className="text-center py-20">
-      <h2 className="font-display text-3xl">Nothing here yet</h2>
+    <div className="text-center py-20 bg-card border border-border rounded-3xl">
+      <h2 className="font-display text-3xl">Nothing matches your filters</h2>
       <p className="text-muted-foreground mt-3 max-w-sm mx-auto">
-        We're hand-picking new pieces for this category. Check back soon — or browse other collections.
+        Try adjusting filters or browse other collections.
       </p>
       <Link to="/" className="mt-6 inline-flex px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors">
         Back to home

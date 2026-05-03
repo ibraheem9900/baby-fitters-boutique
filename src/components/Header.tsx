@@ -1,14 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Search, Menu, X } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, ChevronDown, Tag } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
-import { CATEGORIES } from "@/lib/categories";
+import { NAV_GROUPS } from "@/lib/taxonomy";
 import brandMark from "@/assets/brand-mark.png";
 
 export function Header() {
   const { count, setOpen } = useCart();
   const [mobile, setMobile] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-border/60">
@@ -24,21 +25,73 @@ export function Header() {
             </div>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-8">
-            <Link to="/" className="text-sm font-semibold hover:text-primary transition-colors" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
+          <nav className="hidden lg:flex items-center gap-1" onMouseLeave={() => setOpenMenu(null)}>
+            <Link to="/" className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
               Home
             </Link>
-            {CATEGORIES.slice(0, 4).map((c) => (
-              <Link
-                key={c.slug}
-                to="/category/$slug"
-                params={{ slug: c.slug }}
-                className="text-sm font-semibold hover:text-primary transition-colors"
-                activeProps={{ className: "text-primary" }}
-              >
-                {c.label}
-              </Link>
-            ))}
+
+            {NAV_GROUPS.map((group) => {
+              const isSale = group.slug === "sale";
+              const to = isSale ? "/sale" : "/category/$slug";
+              const params = isSale ? undefined : { slug: group.slug as string };
+              return (
+                <div
+                  key={group.label}
+                  className="relative"
+                  onMouseEnter={() => setOpenMenu(group.label)}
+                >
+                  <Link
+                    to={to}
+                    params={params as never}
+                    className={`px-3 py-2 text-sm font-semibold hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
+                  >
+                    {isSale && <Tag className="w-3.5 h-3.5" />}
+                    {group.label}
+                    <ChevronDown className="w-3 h-3 opacity-60" />
+                  </Link>
+                  <AnimatePresence>
+                    {openMenu === group.label && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute left-0 top-full pt-2 z-50"
+                      >
+                        <div className="bg-card border border-border shadow-pillow rounded-2xl p-5 grid gap-4 min-w-[260px]" style={{ gridTemplateColumns: `repeat(${group.columns.length}, minmax(160px, 1fr))` }}>
+                          {group.columns.map((col, ci) => (
+                            <div key={ci}>
+                              {col.heading && (
+                                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">{col.heading}</p>
+                              )}
+                              <ul className="space-y-1">
+                                {col.items.map((item) => (
+                                  <li key={item}>
+                                    <Link
+                                      to={to}
+                                      params={params as never}
+                                      search={{ sub: item } as never}
+                                      onClick={() => setOpenMenu(null)}
+                                      className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                    >
+                                      {item}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+
+            <Link to="/contact" className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors" activeProps={{ className: "text-primary" }}>
+              Contact
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -86,18 +139,37 @@ export function Header() {
             >
               <div className="flex flex-col py-4 gap-1">
                 <Link to="/" onClick={() => setMobile(false)} className="px-3 py-2 rounded-xl hover:bg-muted font-semibold">Home</Link>
-                {CATEGORIES.map((c) => (
-                  <Link
-                    key={c.slug}
-                    to="/category/$slug"
-                    params={{ slug: c.slug }}
-                    onClick={() => setMobile(false)}
-                    className="px-3 py-2 rounded-xl hover:bg-muted font-semibold flex items-center gap-3"
-                  >
-                    <img src={c.image} alt="" width={32} height={32} className="w-8 h-8 rounded-lg object-cover" />
-                    {c.label}
-                  </Link>
+                {NAV_GROUPS.map((group) => (
+                  <details key={group.label} className="group">
+                    <summary className="px-3 py-2 rounded-xl hover:bg-muted font-semibold cursor-pointer flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        {group.slug === "sale" && <Tag className="w-4 h-4 text-primary" />}
+                        {group.label}
+                      </span>
+                      <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                    </summary>
+                    <div className="pl-4 pb-2 flex flex-col gap-0.5">
+                      {group.columns.map((col, ci) => (
+                        <div key={ci} className="mt-1">
+                          {col.heading && <p className="px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{col.heading}</p>}
+                          {col.items.map((item) => (
+                            <Link
+                              key={item}
+                              to={group.slug === "sale" ? "/sale" : "/category/$slug"}
+                              params={group.slug === "sale" ? undefined : { slug: group.slug as string } as never}
+                              search={{ sub: item } as never}
+                              onClick={() => setMobile(false)}
+                              className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
+                            >
+                              {item}
+                            </Link>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 ))}
+                <Link to="/contact" onClick={() => setMobile(false)} className="px-3 py-2 rounded-xl hover:bg-muted font-semibold">Contact</Link>
                 <Link to="/search" onClick={() => setMobile(false)} className="px-3 py-2 rounded-xl hover:bg-muted font-semibold">Search</Link>
               </div>
             </motion.nav>
