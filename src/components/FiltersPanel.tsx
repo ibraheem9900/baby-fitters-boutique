@@ -110,12 +110,14 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-export function applyFilters(items: Array<{
+type Filterable = {
   price: number;
   discount_percent: number;
   gender: string | null;
   age_group: string | null;
-}>, f: FilterState) {
+};
+
+export function applyFilters<T extends Filterable>(items: T[], f: FilterState): T[] {
   return items.filter((p) => {
     if (f.age.length && (!p.age_group || !f.age.includes(p.age_group))) return false;
     if (f.gender.length && (!p.gender || !f.gender.includes(p.gender))) return false;
