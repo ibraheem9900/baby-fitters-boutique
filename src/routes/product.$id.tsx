@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard } from "@/components/ProductCard";
 import { categoryLabel, formatPrice } from "@/lib/categories";
-import { fetchProducts, type Product } from "@/lib/products";
+import { fetchProducts, discountedPrice, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/product/$id")({
@@ -52,8 +52,11 @@ function ProductPage() {
     );
   }
 
+  const finalPrice = discountedPrice(product);
+  const hasDiscount = (product.discount_percent ?? 0) > 0;
+
   const handleAdd = () => {
-    add({ id: product.id, name: product.name, price: product.price, image_url: product.image_url }, qty);
+    add({ id: product.id, name: product.name, price: finalPrice, image_url: product.image_url }, qty);
     toast.success(`${product.name} added to cart`, {
       action: { label: "View cart", onClick: () => setOpen(true) },
     });
@@ -95,7 +98,17 @@ function ProductPage() {
               {categoryLabel(product.category)}
             </Link>
             <h1 className="font-display text-4xl sm:text-5xl">{product.name}</h1>
-            <p className="font-display text-3xl mt-4">{formatPrice(product.price)}</p>
+            <div className="mt-4 flex items-baseline gap-3 flex-wrap">
+              <p className="font-display text-3xl">{formatPrice(finalPrice)}</p>
+              {hasDiscount && (
+                <>
+                  <p className="text-xl text-muted-foreground line-through">{formatPrice(product.price)}</p>
+                  <span className="px-2.5 py-1 rounded-full bg-destructive text-destructive-foreground text-xs font-bold">
+                    -{product.discount_percent}%
+                  </span>
+                </>
+              )}
+            </div>
             <p className="mt-6 text-muted-foreground leading-relaxed">
               {product.description ?? "A soft, safe and sweet addition to your little one's collection. Made with care from premium materials."}
             </p>
@@ -115,7 +128,7 @@ function ProductPage() {
                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors shadow-pillow"
               >
                 <ShoppingBag className="w-4 h-4" />
-                Add to cart — {formatPrice(product.price * qty)}
+                Add to cart — {formatPrice(finalPrice * qty)}
               </button>
             </div>
 
