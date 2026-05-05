@@ -163,16 +163,27 @@ export function Header() {
                         <div key={ci} className="mt-1">
                           {col.heading && <p className="px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{col.heading}</p>}
                           {col.items.map((item) => (
-                            <Link
-                              key={item}
-                              to={group.slug === "sale" ? "/sale" : "/category/$slug"}
-                              params={group.slug === "sale" ? undefined : { slug: group.slug as string } as never}
-                              search={{ sub: item } as never}
-                              onClick={() => setMobile(false)}
-                              className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
-                            >
-                              {item}
-                            </Link>
+                            group.slug === "sale" ? (
+                              <Link
+                                key={item}
+                                to="/sale"
+                                search={{ sub: item } as never}
+                                onClick={() => setMobile(false)}
+                                className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
+                              >
+                                {item}
+                              </Link>
+                            ) : (
+                              <Link
+                                key={item}
+                                to="/category/$slug/$sub"
+                                params={{ slug: group.slug as string, sub: slugifySub(item) }}
+                                onClick={() => setMobile(false)}
+                                className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
+                              >
+                                {item}
+                              </Link>
+                            )
                           ))}
                         </div>
                       ))}
