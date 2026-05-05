@@ -4,7 +4,8 @@ import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
-import { fetchProducts, type Product } from "@/lib/products";
+import { fetchProducts, type Product, type ProductVariant } from "@/lib/products";
+import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
 import brandMark from "@/assets/brand-mark.png";
 
