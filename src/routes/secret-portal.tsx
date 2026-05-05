@@ -219,7 +219,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         description: form.description || null,
         price: parseFloat(form.price),
         category: form.category,
-        image_url: form.image_url || null,
+        image_url: form.images[0] ?? form.image_url ?? null,
         is_featured: form.is_featured,
         is_new_arrival: form.is_new_arrival,
         is_best_seller: form.is_best_seller,
@@ -227,6 +227,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         discount_percent: parseInt(form.discount_percent || "0", 10) || 0,
         gender: form.gender || null,
         age_group: form.age_group || null,
+        images: form.images,
+        variants: form.variants.filter((v) => v.size || v.color) as unknown as ProductVariant[],
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
