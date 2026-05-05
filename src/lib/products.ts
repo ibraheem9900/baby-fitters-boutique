@@ -1,6 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { CategorySlug } from "./categories";
 
+export type ProductVariant = {
+  size?: string;
+  color?: string;
+  colorHex?: string;
+  label?: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -17,7 +24,15 @@ export type Product = {
   discount_percent: number;
   gender: string | null;
   age_group: string | null;
+  images: string[];
+  variants: ProductVariant[];
 };
+
+export function productImages(p: Pick<Product, "images" | "image_url">): string[] {
+  const arr = (p.images ?? []).filter(Boolean);
+  if (arr.length) return arr;
+  return p.image_url ? [p.image_url] : [];
+}
 
 export function discountedPrice(p: Pick<Product, "price" | "discount_percent">) {
   const d = p.discount_percent ?? 0;
@@ -31,5 +46,9 @@ export async function fetchProducts(): Promise<Product[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as Product[];
+  return (data ?? []).map((r) => ({
+    ...r,
+    images: (r.images ?? []) as string[],
+    variants: (Array.isArray(r.variants) ? r.variants : []) as ProductVariant[],
+  })) as Product[];
 }
