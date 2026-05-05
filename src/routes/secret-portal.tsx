@@ -158,25 +158,56 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const remaining = MAX_IMAGES - form.images.length;
+    if (remaining <= 0) {
+      toast.error(`You can upload at most ${MAX_IMAGES} images`);
+      return;
+    }
+    const toUpload = files.slice(0, remaining);
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
+      const urls: string[] = [];
+      for (const file of toUpload) {
+        const ext = file.name.split(".").pop();
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      setForm((f) => {
+        const next = [...f.images, ...urls].slice(0, MAX_IMAGES);
+        return { ...f, images: next, image_url: f.image_url || next[0] || "" };
       });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-      setForm((f) => ({ ...f, image_url: data.publicUrl }));
-      toast.success("Image uploaded");
+      toast.success(`${urls.length} image${urls.length !== 1 ? "s" : ""} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
+  }
+
+  function removeImage(idx: number) {
+    setForm((f) => {
+      const images = f.images.filter((_, i) => i !== idx);
+      return { ...f, images, image_url: images[0] ?? "" };
+    });
+  }
+
+  function addVariant() {
+    setForm((f) => ({ ...f, variants: [...f.variants, { size: "", color: "", colorHex: "" }] }));
+  }
+  function updateVariant(idx: number, patch: Partial<ProductVariant>) {
+    setForm((f) => ({ ...f, variants: f.variants.map((v, i) => (i === idx ? { ...v, ...patch } : v)) }));
+  }
+  function removeVariant(idx: number) {
+    setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== idx) }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
