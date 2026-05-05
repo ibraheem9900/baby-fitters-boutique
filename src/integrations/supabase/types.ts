@@ -24,6 +24,7 @@ export type Database = {
           gender: string | null
           id: string
           image_url: string | null
+          images: string[]
           is_best_seller: boolean
           is_featured: boolean
           is_new_arrival: boolean
@@ -32,6 +33,7 @@ export type Database = {
           stock: number
           subcategory: string | null
           updated_at: string
+          variants: Json
         }
         Insert: {
           age_group?: string | null
@@ -42,6 +44,7 @@ export type Database = {
           gender?: string | null
           id?: string
           image_url?: string | null
+          images?: string[]
           is_best_seller?: boolean
           is_featured?: boolean
           is_new_arrival?: boolean
@@ -50,6 +53,7 @@ export type Database = {
           stock?: number
           subcategory?: string | null
           updated_at?: string
+          variants?: Json
         }
         Update: {
           age_group?: string | null
@@ -60,6 +64,7 @@ export type Database = {
           gender?: string | null
           id?: string
           image_url?: string | null
+          images?: string[]
           is_best_seller?: boolean
           is_featured?: boolean
           is_new_arrival?: boolean
@@ -68,6 +73,7 @@ export type Database = {
           stock?: number
           subcategory?: string | null
           updated_at?: string
+          variants?: Json
         }
         Relationships: []
       }
