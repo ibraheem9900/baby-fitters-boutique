@@ -6,8 +6,10 @@ import brandMark from "@/assets/brand-mark.png";
 import { SizeChartModal } from "./SizeChartModal";
 
 export function Footer() {
+  const [sizeOpen, setSizeOpen] = useState(false);
   return (
     <footer className="mt-24 border-t border-border/60 gradient-soft">
+      <SizeChartModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid gap-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2 mb-4">
