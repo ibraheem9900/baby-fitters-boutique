@@ -114,6 +114,8 @@ type FormState = {
   discount_percent: string;
   gender: string;
   age_group: string;
+  images: string[];
+  variants: ProductVariant[];
 };
 
 const emptyForm: FormState = {
@@ -129,7 +131,11 @@ const emptyForm: FormState = {
   discount_percent: "0",
   gender: "",
   age_group: "",
+  images: [],
+  variants: [],
 };
+
+const MAX_IMAGES = 6;
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
