@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { Instagram, Facebook, Twitter } from "lucide-react";
 import brandMark from "@/assets/brand-mark.png";
+import { SizeChartModal } from "./SizeChartModal";
 
 export function Footer() {
   return (
