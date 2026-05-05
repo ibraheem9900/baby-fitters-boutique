@@ -345,7 +345,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <Field label="Category">
                 <select
                   value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug })}
+                  onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug, subcategory: "" })}
                   className="input"
                 >
                   {CATEGORIES.map((c) => (
@@ -353,26 +353,59 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   ))}
                 </select>
               </Field>
-              <Field label="Image">
-                <div className="flex items-center gap-3">
-                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors">
-                    <Upload className="w-4 h-4" />
-                    {uploading ? "Uploading..." : "Upload image"}
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                  </label>
-                  {form.image_url && (
-                    <img src={form.image_url} alt="preview" className="w-12 h-12 rounded-xl object-cover border border-border" />
-                  )}
-                </div>
-              </Field>
-              <Field label="Subcategory (optional)">
-                <input
+              <Field label="Subcategory">
+                <select
                   value={form.subcategory}
                   onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
                   className="input"
-                  placeholder="e.g. Frocks, Feeders & Sippers"
-                />
+                >
+                  <option value="">— None —</option>
+                  {subcategoriesFor(form.category).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </Field>
+              <div className="md:col-span-2">
+                <Field label={`Images (up to ${MAX_IMAGES})`}>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors ${form.images.length >= MAX_IMAGES ? "opacity-50 pointer-events-none" : ""}`}>
+                        <Upload className="w-4 h-4" />
+                        {uploading ? "Uploading..." : `Upload images (${form.images.length}/${MAX_IMAGES})`}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploading || form.images.length >= MAX_IMAGES}
+                        />
+                      </label>
+                      <p className="text-xs text-muted-foreground">First image is used as the cover.</p>
+                    </div>
+                    {form.images.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        {form.images.map((src, i) => (
+                          <div key={src + i} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
+                            <img src={src} alt={`product ${i + 1}`} className="w-full h-full object-cover" />
+                            {i === 0 && (
+                              <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-foreground text-background text-[9px] font-bold uppercase tracking-wider">Cover</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(i)}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/90 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Remove"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Field>
+              </div>
               <Field label="Discount %">
                 <input
                   type="number"
