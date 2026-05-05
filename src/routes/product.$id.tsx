@@ -19,6 +19,9 @@ function ProductPage() {
   const { id } = Route.useParams();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [qty, setQty] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const { add, setOpen } = useCart();
 
   useEffect(() => {
