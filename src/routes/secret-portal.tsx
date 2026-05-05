@@ -270,6 +270,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       discount_percent: String(p.discount_percent ?? 0),
       gender: p.gender ?? "",
       age_group: p.age_group ?? "",
+      images: (p.images && p.images.length ? p.images : (p.image_url ? [p.image_url] : [])),
+      variants: p.variants ?? [],
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
