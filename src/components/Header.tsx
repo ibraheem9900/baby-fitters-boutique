@@ -3,7 +3,7 @@ import { ShoppingBag, Search, Menu, X, ChevronDown, Tag } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
-import { NAV_GROUPS } from "@/lib/taxonomy";
+import { NAV_GROUPS, slugifySub } from "@/lib/taxonomy";
 import brandMark from "@/assets/brand-mark.png";
 
 export function Header() {
