@@ -4,7 +4,8 @@ import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
-import { fetchProducts, type Product } from "@/lib/products";
+import { fetchProducts, type Product, type ProductVariant } from "@/lib/products";
+import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
 import brandMark from "@/assets/brand-mark.png";
 
@@ -113,6 +114,8 @@ type FormState = {
   discount_percent: string;
   gender: string;
   age_group: string;
+  images: string[];
+  variants: ProductVariant[];
 };
 
 const emptyForm: FormState = {
@@ -128,7 +131,11 @@ const emptyForm: FormState = {
   discount_percent: "0",
   gender: "",
   age_group: "",
+  images: [],
+  variants: [],
 };
+
+const MAX_IMAGES = 6;
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -151,25 +158,56 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const remaining = MAX_IMAGES - form.images.length;
+    if (remaining <= 0) {
+      toast.error(`You can upload at most ${MAX_IMAGES} images`);
+      return;
+    }
+    const toUpload = files.slice(0, remaining);
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
+      const urls: string[] = [];
+      for (const file of toUpload) {
+        const ext = file.name.split(".").pop();
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      setForm((f) => {
+        const next = [...f.images, ...urls].slice(0, MAX_IMAGES);
+        return { ...f, images: next, image_url: f.image_url || next[0] || "" };
       });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-      setForm((f) => ({ ...f, image_url: data.publicUrl }));
-      toast.success("Image uploaded");
+      toast.success(`${urls.length} image${urls.length !== 1 ? "s" : ""} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
+  }
+
+  function removeImage(idx: number) {
+    setForm((f) => {
+      const images = f.images.filter((_, i) => i !== idx);
+      return { ...f, images, image_url: images[0] ?? "" };
+    });
+  }
+
+  function addVariant() {
+    setForm((f) => ({ ...f, variants: [...f.variants, { size: "", color: "", colorHex: "" }] }));
+  }
+  function updateVariant(idx: number, patch: Partial<ProductVariant>) {
+    setForm((f) => ({ ...f, variants: f.variants.map((v, i) => (i === idx ? { ...v, ...patch } : v)) }));
+  }
+  function removeVariant(idx: number) {
+    setForm((f) => ({ ...f, variants: f.variants.filter((_, i) => i !== idx) }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -181,7 +219,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         description: form.description || null,
         price: parseFloat(form.price),
         category: form.category,
-        image_url: form.image_url || null,
+        image_url: form.images[0] ?? form.image_url ?? null,
         is_featured: form.is_featured,
         is_new_arrival: form.is_new_arrival,
         is_best_seller: form.is_best_seller,
@@ -189,6 +227,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         discount_percent: parseInt(form.discount_percent || "0", 10) || 0,
         gender: form.gender || null,
         age_group: form.age_group || null,
+        images: form.images,
+        variants: form.variants.filter((v) => v.size || v.color) as unknown as ProductVariant[],
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
@@ -230,6 +270,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       discount_percent: String(p.discount_percent ?? 0),
       gender: p.gender ?? "",
       age_group: p.age_group ?? "",
+      images: (p.images && p.images.length ? p.images : (p.image_url ? [p.image_url] : [])),
+      variants: p.variants ?? [],
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -303,7 +345,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <Field label="Category">
                 <select
                   value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug })}
+                  onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug, subcategory: "" })}
                   className="input"
                 >
                   {CATEGORIES.map((c) => (
@@ -311,26 +353,59 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   ))}
                 </select>
               </Field>
-              <Field label="Image">
-                <div className="flex items-center gap-3">
-                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors">
-                    <Upload className="w-4 h-4" />
-                    {uploading ? "Uploading..." : "Upload image"}
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                  </label>
-                  {form.image_url && (
-                    <img src={form.image_url} alt="preview" className="w-12 h-12 rounded-xl object-cover border border-border" />
-                  )}
-                </div>
-              </Field>
-              <Field label="Subcategory (optional)">
-                <input
+              <Field label="Subcategory">
+                <select
                   value={form.subcategory}
                   onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
                   className="input"
-                  placeholder="e.g. Frocks, Feeders & Sippers"
-                />
+                >
+                  <option value="">— None —</option>
+                  {subcategoriesFor(form.category).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </Field>
+              <div className="md:col-span-2">
+                <Field label={`Images (up to ${MAX_IMAGES})`}>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors ${form.images.length >= MAX_IMAGES ? "opacity-50 pointer-events-none" : ""}`}>
+                        <Upload className="w-4 h-4" />
+                        {uploading ? "Uploading..." : `Upload images (${form.images.length}/${MAX_IMAGES})`}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploading || form.images.length >= MAX_IMAGES}
+                        />
+                      </label>
+                      <p className="text-xs text-muted-foreground">First image is used as the cover.</p>
+                    </div>
+                    {form.images.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        {form.images.map((src, i) => (
+                          <div key={src + i} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
+                            <img src={src} alt={`product ${i + 1}`} className="w-full h-full object-cover" />
+                            {i === 0 && (
+                              <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-foreground text-background text-[9px] font-bold uppercase tracking-wider">Cover</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(i)}
+                              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/90 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Remove"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Field>
+              </div>
               <Field label="Discount %">
                 <input
                   type="number"
@@ -376,6 +451,63 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     className="input min-h-24"
                     placeholder="Soft, breathable cotton perfect for sensitive skin..."
                   />
+                </Field>
+              </div>
+              <div className="md:col-span-2">
+                <Field label="Variants (size & color)">
+                  <div className="space-y-2">
+                    {form.variants.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No variants yet — add sizes or colors customers can choose from.</p>
+                    )}
+                    {form.variants.map((v, i) => (
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
+                        <select
+                          value={v.size ?? ""}
+                          onChange={(e) => updateVariant(i, { size: e.target.value })}
+                          className="input"
+                        >
+                          <option value="">— Size —</option>
+                          {SIZE_PRESETS.map((s) => <option key={s} value={s}>{s}</option>)}
+                          <option value={v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "__custom"}>
+                            {v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "Custom..."}
+                          </option>
+                        </select>
+                        <select
+                          value={v.color ?? ""}
+                          onChange={(e) => {
+                            const preset = COLOR_PRESETS.find((c) => c.name === e.target.value);
+                            updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
+                          }}
+                          className="input"
+                        >
+                          <option value="">— Color —</option>
+                          {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                        </select>
+                        <input
+                          type="color"
+                          value={v.colorHex || "#ffffff"}
+                          onChange={(e) => updateVariant(i, { colorHex: e.target.value })}
+                          className="h-10 w-12 rounded-xl border border-border bg-background cursor-pointer"
+                          aria-label="Color hex"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(i)}
+                          className="w-10 h-10 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"
+                          aria-label="Remove variant"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors"
+                    >
+                      <Plus className="w-4 h-4" /> Add variant
+                    </button>
+                  </div>
                 </Field>
               </div>
               <div className="md:col-span-2 flex flex-wrap gap-4">

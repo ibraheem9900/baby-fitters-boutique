@@ -85,3 +85,34 @@ export const GENDERS = [
 ] as const;
 
 export const DISCOUNT_TIERS = [25, 50, 70] as const;
+
+// Flat list of subcategories per top-level category slug (used by admin + filters)
+export function subcategoriesFor(slug: string): string[] {
+  const group = NAV_GROUPS.find((g) => g.slug === slug);
+  if (!group) return [];
+  const items: string[] = [];
+  group.columns.forEach((c) => c.items.forEach((i) => items.push(i)));
+  return Array.from(new Set(items));
+}
+
+export function slugifySub(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+export function subFromSlug(categorySlug: string, sub: string): string | undefined {
+  return subcategoriesFor(categorySlug).find((s) => slugifySub(s) === sub);
+}
+
+// Common size/color presets used in admin variant builder + product page
+export const SIZE_PRESETS = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+export const COLOR_PRESETS = [
+  { name: "Pink", hex: "#f9a8d4" },
+  { name: "Blue", hex: "#93c5fd" },
+  { name: "Cream", hex: "#fef3c7" },
+  { name: "Mint", hex: "#a7f3d0" },
+  { name: "White", hex: "#ffffff" },
+  { name: "Black", hex: "#0f172a" },
+  { name: "Yellow", hex: "#fde68a" },
+  { name: "Red", hex: "#fca5a5" },
+] as const;
+

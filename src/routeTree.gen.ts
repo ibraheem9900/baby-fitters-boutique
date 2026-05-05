@@ -16,6 +16,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as CategorySlugSubRouteImport } from './routes/category.$slug.$sub'
 
 const SecretPortalRoute = SecretPortalRouteImport.update({
   id: '/secret-portal',
@@ -52,6 +53,11 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategorySlugSubRoute = CategorySlugSubRouteImport.update({
+  id: '/$sub',
+  path: '/$sub',
+  getParentRoute: () => CategorySlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,8 +65,9 @@ export interface FileRoutesByFullPath {
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
-  '/category/$slug': typeof CategorySlugRoute
+  '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
+  '/category/$slug/$sub': typeof CategorySlugSubRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +75,9 @@ export interface FileRoutesByTo {
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
-  '/category/$slug': typeof CategorySlugRoute
+  '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
+  '/category/$slug/$sub': typeof CategorySlugSubRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +86,9 @@ export interface FileRoutesById {
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
-  '/category/$slug': typeof CategorySlugRoute
+  '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
+  '/category/$slug/$sub': typeof CategorySlugSubRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/secret-portal'
     | '/category/$slug'
     | '/product/$id'
+    | '/category/$slug/$sub'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/secret-portal'
     | '/category/$slug'
     | '/product/$id'
+    | '/category/$slug/$sub'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/secret-portal'
     | '/category/$slug'
     | '/product/$id'
+    | '/category/$slug/$sub'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,7 +129,7 @@ export interface RootRouteChildren {
   SaleRoute: typeof SaleRoute
   SearchRoute: typeof SearchRoute
   SecretPortalRoute: typeof SecretPortalRoute
-  CategorySlugRoute: typeof CategorySlugRoute
+  CategorySlugRoute: typeof CategorySlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
 }
 
@@ -172,8 +184,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/category/$slug/$sub': {
+      id: '/category/$slug/$sub'
+      path: '/$sub'
+      fullPath: '/category/$slug/$sub'
+      preLoaderRoute: typeof CategorySlugSubRouteImport
+      parentRoute: typeof CategorySlugRoute
+    }
   }
 }
+
+interface CategorySlugRouteChildren {
+  CategorySlugSubRoute: typeof CategorySlugSubRoute
+}
+
+const CategorySlugRouteChildren: CategorySlugRouteChildren = {
+  CategorySlugSubRoute: CategorySlugSubRoute,
+}
+
+const CategorySlugRouteWithChildren = CategorySlugRoute._addFileChildren(
+  CategorySlugRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -181,18 +212,9 @@ const rootRouteChildren: RootRouteChildren = {
   SaleRoute: SaleRoute,
   SearchRoute: SearchRoute,
   SecretPortalRoute: SecretPortalRoute,
-  CategorySlugRoute: CategorySlugRoute,
+  CategorySlugRoute: CategorySlugRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

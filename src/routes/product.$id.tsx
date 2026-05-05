@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard } from "@/components/ProductCard";
+import { ImageGallery } from "@/components/ImageGallery";
+import { SizeChartModal } from "@/components/SizeChartModal";
 import { categoryLabel, formatPrice } from "@/lib/categories";
-import { fetchProducts, discountedPrice, type Product } from "@/lib/products";
+import { fetchProducts, discountedPrice, productImages, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/product/$id")({
@@ -17,6 +19,9 @@ function ProductPage() {
   const { id } = Route.useParams();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [qty, setQty] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const { add, setOpen } = useCart();
 
   useEffect(() => {
@@ -54,16 +59,35 @@ function ProductPage() {
 
   const finalPrice = discountedPrice(product);
   const hasDiscount = (product.discount_percent ?? 0) > 0;
+  const images = useMemo(() => productImages(product), [product]);
+  const variants = product.variants ?? [];
+  const sizes = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.size).filter((s): s is string => !!s))),
+    [variants],
+  );
+  const colors = useMemo(() => {
+    const map = new Map<string, { color: string; colorHex?: string }>();
+    variants.forEach((v) => {
+      if (v.color && !map.has(v.color)) map.set(v.color, { color: v.color, colorHex: v.colorHex });
+    });
+    return Array.from(map.values());
+  }, [variants]);
 
   const handleAdd = () => {
-    add({ id: product.id, name: product.name, price: finalPrice, image_url: product.image_url }, qty);
-    toast.success(`${product.name} added to cart`, {
+    if (sizes.length && !selectedSize) { toast.error("Please select a size"); return; }
+    if (colors.length && !selectedColor) { toast.error("Please select a color"); return; }
+    const variantTag = [selectedSize, selectedColor].filter(Boolean).join(" / ");
+    const cartId = variantTag ? `${product.id}::${variantTag}` : product.id;
+    const cartName = variantTag ? `${product.name} — ${variantTag}` : product.name;
+    add({ id: cartId, name: cartName, price: finalPrice, image_url: images[0] ?? product.image_url }, qty);
+    toast.success(`${cartName} added to cart`, {
       action: { label: "View cart", onClick: () => setOpen(true) },
     });
   };
 
   return (
     <PageLayout>
+      <SizeChartModal open={sizeChartOpen} onClose={() => setSizeChartOpen(false)} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
           <ArrowLeft className="w-4 h-4" /> Back
@@ -75,14 +99,7 @@ function ProductPage() {
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="absolute inset-0 bg-blush rounded-[3rem] rotate-2" />
-            <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-cream shadow-pillow">
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-blush" />
-              )}
-            </div>
+            <ImageGallery images={images} alt={product.name} />
           </motion.div>
 
           <motion.div
@@ -112,6 +129,60 @@ function ProductPage() {
             <p className="mt-6 text-muted-foreground leading-relaxed">
               {product.description ?? "A soft, safe and sweet addition to your little one's collection. Made with care from premium materials."}
             </p>
+
+            {sizes.length > 0 && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Size</p>
+                  <button
+                    type="button"
+                    onClick={() => setSizeChartOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <Ruler className="w-3.5 h-3.5" /> Size guide
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSelectedSize(s)}
+                      className={`min-w-[44px] px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                        selectedSize === s
+                          ? "bg-foreground text-background border-foreground scale-105"
+                          : "bg-background border-border hover:bg-blush"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {colors.length > 0 && (
+              <div className="mt-6">
+                <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-3">
+                  Color {selectedColor && <span className="text-foreground normal-case tracking-normal">— {selectedColor}</span>}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {colors.map((c) => (
+                    <button
+                      key={c.color}
+                      type="button"
+                      onClick={() => setSelectedColor(c.color)}
+                      title={c.color}
+                      aria-label={c.color}
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        selectedColor === c.color ? "border-foreground scale-110 shadow-pillow" : "border-border hover:scale-105"
+                      }`}
+                      style={{ background: c.colorHex || "#e5e7eb" }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-8 flex items-center gap-4">
               <div className="flex items-center gap-1 bg-muted rounded-full p-1">

@@ -1,11 +1,15 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
 import { Instagram, Facebook, Twitter } from "lucide-react";
 import brandMark from "@/assets/brand-mark.png";
+import { SizeChartModal } from "./SizeChartModal";
 
 export function Footer() {
+  const [sizeOpen, setSizeOpen] = useState(false);
   return (
     <footer className="mt-24 border-t border-border/60 gradient-soft">
+      <SizeChartModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid gap-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2 mb-4">
@@ -49,8 +53,8 @@ export function Footer() {
           <ul className="space-y-2">
             <li><a href="#" className="hover:text-primary transition-colors">Shipping</a></li>
             <li><a href="#" className="hover:text-primary transition-colors">Returns</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Size Guide</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+            <li><button type="button" onClick={() => setSizeOpen(true)} className="hover:text-primary transition-colors">Size Chart</button></li>
+            <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
           </ul>
         </div>
       </div>

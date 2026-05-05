@@ -3,7 +3,7 @@ import { ShoppingBag, Search, Menu, X, ChevronDown, Tag } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
-import { NAV_GROUPS } from "@/lib/taxonomy";
+import { NAV_GROUPS, slugifySub } from "@/lib/taxonomy";
 import brandMark from "@/assets/brand-mark.png";
 
 export function Header() {
@@ -67,15 +67,25 @@ export function Header() {
                               <ul className="space-y-1">
                                 {col.items.map((item) => (
                                   <li key={item}>
-                                    <Link
-                                      to={to}
-                                      params={params as never}
-                                      search={{ sub: item } as never}
-                                      onClick={() => setOpenMenu(null)}
-                                      className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
-                                    >
-                                      {item}
-                                    </Link>
+                                    {isSale ? (
+                                      <Link
+                                        to="/sale"
+                                        search={{ sub: item } as never}
+                                        onClick={() => setOpenMenu(null)}
+                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                      >
+                                        {item}
+                                      </Link>
+                                    ) : (
+                                      <Link
+                                        to="/category/$slug/$sub"
+                                        params={{ slug: group.slug as string, sub: slugifySub(item) }}
+                                        onClick={() => setOpenMenu(null)}
+                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                      >
+                                        {item}
+                                      </Link>
+                                    )}
                                   </li>
                                 ))}
                               </ul>
@@ -153,16 +163,27 @@ export function Header() {
                         <div key={ci} className="mt-1">
                           {col.heading && <p className="px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{col.heading}</p>}
                           {col.items.map((item) => (
-                            <Link
-                              key={item}
-                              to={group.slug === "sale" ? "/sale" : "/category/$slug"}
-                              params={group.slug === "sale" ? undefined : { slug: group.slug as string } as never}
-                              search={{ sub: item } as never}
-                              onClick={() => setMobile(false)}
-                              className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
-                            >
-                              {item}
-                            </Link>
+                            group.slug === "sale" ? (
+                              <Link
+                                key={item}
+                                to="/sale"
+                                search={{ sub: item } as never}
+                                onClick={() => setMobile(false)}
+                                className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
+                              >
+                                {item}
+                              </Link>
+                            ) : (
+                              <Link
+                                key={item}
+                                to="/category/$slug/$sub"
+                                params={{ slug: group.slug as string, sub: slugifySub(item) }}
+                                onClick={() => setMobile(false)}
+                                className="block px-3 py-1.5 rounded-lg text-sm hover:bg-muted"
+                              >
+                                {item}
+                              </Link>
+                            )
                           ))}
                         </div>
                       ))}
