@@ -453,6 +453,63 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   />
                 </Field>
               </div>
+              <div className="md:col-span-2">
+                <Field label="Variants (size & color)">
+                  <div className="space-y-2">
+                    {form.variants.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No variants yet — add sizes or colors customers can choose from.</p>
+                    )}
+                    {form.variants.map((v, i) => (
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
+                        <select
+                          value={v.size ?? ""}
+                          onChange={(e) => updateVariant(i, { size: e.target.value })}
+                          className="input"
+                        >
+                          <option value="">— Size —</option>
+                          {SIZE_PRESETS.map((s) => <option key={s} value={s}>{s}</option>)}
+                          <option value={v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "__custom"}>
+                            {v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "Custom..."}
+                          </option>
+                        </select>
+                        <select
+                          value={v.color ?? ""}
+                          onChange={(e) => {
+                            const preset = COLOR_PRESETS.find((c) => c.name === e.target.value);
+                            updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
+                          }}
+                          className="input"
+                        >
+                          <option value="">— Color —</option>
+                          {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                        </select>
+                        <input
+                          type="color"
+                          value={v.colorHex || "#ffffff"}
+                          onChange={(e) => updateVariant(i, { colorHex: e.target.value })}
+                          className="h-10 w-12 rounded-xl border border-border bg-background cursor-pointer"
+                          aria-label="Color hex"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(i)}
+                          className="w-10 h-10 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"
+                          aria-label="Remove variant"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors"
+                    >
+                      <Plus className="w-4 h-4" /> Add variant
+                    </button>
+                  </div>
+                </Field>
+              </div>
               <div className="md:col-span-2 flex flex-wrap gap-4">
                 <Toggle label="Featured" checked={form.is_featured} onChange={(v) => setForm({ ...form, is_featured: v })} />
                 <Toggle label="New arrival" checked={form.is_new_arrival} onChange={(v) => setForm({ ...form, is_new_arrival: v })} />
