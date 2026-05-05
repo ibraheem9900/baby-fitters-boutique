@@ -53,8 +53,8 @@ export function Footer() {
           <ul className="space-y-2">
             <li><a href="#" className="hover:text-primary transition-colors">Shipping</a></li>
             <li><a href="#" className="hover:text-primary transition-colors">Returns</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Size Guide</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+            <li><button type="button" onClick={() => setSizeOpen(true)} className="hover:text-primary transition-colors">Size Chart</button></li>
+            <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
           </ul>
         </div>
       </div>
