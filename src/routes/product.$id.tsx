@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard } from "@/components/ProductCard";
+import { ImageGallery } from "@/components/ImageGallery";
+import { SizeChartModal } from "@/components/SizeChartModal";
 import { categoryLabel, formatPrice } from "@/lib/categories";
-import { fetchProducts, discountedPrice, type Product } from "@/lib/products";
+import { fetchProducts, discountedPrice, productImages, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/product/$id")({
