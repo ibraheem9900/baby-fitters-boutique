@@ -67,15 +67,25 @@ export function Header() {
                               <ul className="space-y-1">
                                 {col.items.map((item) => (
                                   <li key={item}>
-                                    <Link
-                                      to={to}
-                                      params={params as never}
-                                      search={{ sub: item } as never}
-                                      onClick={() => setOpenMenu(null)}
-                                      className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
-                                    >
-                                      {item}
-                                    </Link>
+                                    {isSale ? (
+                                      <Link
+                                        to="/sale"
+                                        search={{ sub: item } as never}
+                                        onClick={() => setOpenMenu(null)}
+                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                      >
+                                        {item}
+                                      </Link>
+                                    ) : (
+                                      <Link
+                                        to="/category/$slug/$sub"
+                                        params={{ slug: group.slug as string, sub: slugifySub(item) }}
+                                        onClick={() => setOpenMenu(null)}
+                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                      >
+                                        {item}
+                                      </Link>
+                                    )}
                                   </li>
                                 ))}
                               </ul>
