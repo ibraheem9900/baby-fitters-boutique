@@ -201,7 +201,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }
 
   function addVariant() {
-    setForm((f) => ({ ...f, variants: [...f.variants, { size: "", color: "", colorHex: "" }] }));
+    setForm((f) => ({ ...f, variants: [...f.variants, { label: "", size: "", color: "", colorHex: "" }] }));
   }
   function updateVariant(idx: number, patch: Partial<ProductVariant>) {
     setForm((f) => ({ ...f, variants: f.variants.map((v, i) => (i === idx ? { ...v, ...patch } : v)) }));
@@ -228,7 +228,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         gender: form.gender || null,
         age_group: form.age_group || null,
         images: form.images,
-        variants: form.variants.filter((v) => v.size || v.color) as unknown as ProductVariant[],
+        variants: form.variants.filter((v) => v.size || v.color || v.label) as unknown as ProductVariant[],
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
@@ -454,35 +454,44 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Variants (size & color)">
+                <Field label="Variants (size, color, or any custom attribute)">
                   <div className="space-y-2">
                     {form.variants.length === 0 && (
-                      <p className="text-xs text-muted-foreground">No variants yet — add sizes or colors customers can choose from.</p>
+                      <p className="text-xs text-muted-foreground">No variants yet — add sizes, colors, materials, editions, or any custom option.</p>
                     )}
                     {form.variants.map((v, i) => (
-                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
-                        <select
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
+                        <input
+                          value={v.label ?? ""}
+                          onChange={(e) => updateVariant(i, { label: e.target.value })}
+                          className="input"
+                          placeholder="Attribute (e.g. Material)"
+                        />
+                        <input
                           value={v.size ?? ""}
                           onChange={(e) => updateVariant(i, { size: e.target.value })}
                           className="input"
-                        >
-                          <option value="">— Size —</option>
-                          {SIZE_PRESETS.map((s) => <option key={s} value={s}>{s}</option>)}
-                          <option value={v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "__custom"}>
-                            {v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "Custom..."}
-                          </option>
-                        </select>
-                        <select
-                          value={v.color ?? ""}
-                          onChange={(e) => {
-                            const preset = COLOR_PRESETS.find((c) => c.name === e.target.value);
-                            updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
-                          }}
-                          className="input"
-                        >
-                          <option value="">— Color —</option>
-                          {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-                        </select>
+                          placeholder="Size (S, M, 0–3m...)"
+                          list={`size-presets-${i}`}
+                        />
+                        <datalist id={`size-presets-${i}`}>
+                          {SIZE_PRESETS.map((s) => <option key={s} value={s} />)}
+                        </datalist>
+                        <div className="flex gap-2">
+                          <input
+                            value={v.color ?? ""}
+                            onChange={(e) => {
+                              const preset = COLOR_PRESETS.find((c) => c.name.toLowerCase() === e.target.value.toLowerCase());
+                              updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
+                            }}
+                            className="input"
+                            placeholder="Color name"
+                            list={`color-presets-${i}`}
+                          />
+                          <datalist id={`color-presets-${i}`}>
+                            {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name} />)}
+                          </datalist>
+                        </div>
                         <input
                           type="color"
                           value={v.colorHex || "#ffffff"}
@@ -626,13 +635,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="inline-flex items-center gap-2 cursor-pointer">
+    <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`w-11 h-6 rounded-full transition-colors relative ${checked ? "bg-primary" : "bg-muted"}`}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ${checked ? "bg-primary" : "bg-muted-foreground/30"}`}
       >
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow-sm transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+        <span
+          className={`inline-block h-5 w-5 rounded-full bg-white shadow-md ring-1 ring-black/5 transition-transform duration-200 ease-out ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`}
+        />
       </button>
       <span className="text-sm font-semibold">{label}</span>
     </label>
