@@ -454,35 +454,44 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Variants (size & color)">
+                <Field label="Variants (size, color, or any custom attribute)">
                   <div className="space-y-2">
                     {form.variants.length === 0 && (
-                      <p className="text-xs text-muted-foreground">No variants yet — add sizes or colors customers can choose from.</p>
+                      <p className="text-xs text-muted-foreground">No variants yet — add sizes, colors, materials, editions, or any custom option.</p>
                     )}
                     {form.variants.map((v, i) => (
-                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
-                        <select
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
+                        <input
+                          value={v.label ?? ""}
+                          onChange={(e) => updateVariant(i, { label: e.target.value })}
+                          className="input"
+                          placeholder="Attribute (e.g. Material)"
+                        />
+                        <input
                           value={v.size ?? ""}
                           onChange={(e) => updateVariant(i, { size: e.target.value })}
                           className="input"
-                        >
-                          <option value="">— Size —</option>
-                          {SIZE_PRESETS.map((s) => <option key={s} value={s}>{s}</option>)}
-                          <option value={v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "__custom"}>
-                            {v.size && !SIZE_PRESETS.includes(v.size as typeof SIZE_PRESETS[number]) ? v.size : "Custom..."}
-                          </option>
-                        </select>
-                        <select
-                          value={v.color ?? ""}
-                          onChange={(e) => {
-                            const preset = COLOR_PRESETS.find((c) => c.name === e.target.value);
-                            updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
-                          }}
-                          className="input"
-                        >
-                          <option value="">— Color —</option>
-                          {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-                        </select>
+                          placeholder="Size (S, M, 0–3m...)"
+                          list={`size-presets-${i}`}
+                        />
+                        <datalist id={`size-presets-${i}`}>
+                          {SIZE_PRESETS.map((s) => <option key={s} value={s} />)}
+                        </datalist>
+                        <div className="flex gap-2">
+                          <input
+                            value={v.color ?? ""}
+                            onChange={(e) => {
+                              const preset = COLOR_PRESETS.find((c) => c.name.toLowerCase() === e.target.value.toLowerCase());
+                              updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" });
+                            }}
+                            className="input"
+                            placeholder="Color name"
+                            list={`color-presets-${i}`}
+                          />
+                          <datalist id={`color-presets-${i}`}>
+                            {COLOR_PRESETS.map((c) => <option key={c.name} value={c.name} />)}
+                          </datalist>
+                        </div>
                         <input
                           type="color"
                           value={v.colorHex || "#ffffff"}
