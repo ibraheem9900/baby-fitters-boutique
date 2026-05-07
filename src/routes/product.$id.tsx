@@ -31,6 +31,20 @@ function ProductPage() {
   const product = products?.find((p) => p.id === id);
   const related = (products ?? []).filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
 
+  const images = useMemo(() => (product ? productImages(product) : []), [product]);
+  const variants = product?.variants ?? [];
+  const sizes = useMemo(
+    () => Array.from(new Set(variants.map((v) => v.size).filter((s): s is string => !!s))),
+    [variants],
+  );
+  const colors = useMemo(() => {
+    const map = new Map<string, { color: string; colorHex?: string }>();
+    variants.forEach((v) => {
+      if (v.color && !map.has(v.color)) map.set(v.color, { color: v.color, colorHex: v.colorHex });
+    });
+    return Array.from(map.values());
+  }, [variants]);
+
   if (products === null) {
     return (
       <PageLayout>
@@ -59,19 +73,6 @@ function ProductPage() {
 
   const finalPrice = discountedPrice(product);
   const hasDiscount = (product.discount_percent ?? 0) > 0;
-  const images = useMemo(() => productImages(product), [product]);
-  const variants = product.variants ?? [];
-  const sizes = useMemo(
-    () => Array.from(new Set(variants.map((v) => v.size).filter((s): s is string => !!s))),
-    [variants],
-  );
-  const colors = useMemo(() => {
-    const map = new Map<string, { color: string; colorHex?: string }>();
-    variants.forEach((v) => {
-      if (v.color && !map.has(v.color)) map.set(v.color, { color: v.color, colorHex: v.colorHex });
-    });
-    return Array.from(map.values());
-  }, [variants]);
 
   const handleAdd = () => {
     if (sizes.length && !selectedSize) { toast.error("Please select a size"); return; }
