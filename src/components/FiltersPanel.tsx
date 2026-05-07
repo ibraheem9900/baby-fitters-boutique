@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { AGE_GROUPS, GENDERS, DISCOUNT_TIERS } from "@/lib/taxonomy";
 import { formatPrice } from "@/lib/categories";
 
@@ -26,14 +28,18 @@ export function FiltersPanel({
   onChange: (next: FilterState) => void;
   priceBounds: { min: number; max: number };
 }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const toggle = <K extends "age" | "gender" | "discount">(key: K, item: FilterState[K][number]) => {
     const arr = value[key] as Array<FilterState[K][number]>;
     const next = arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
     onChange({ ...value, [key]: next });
   };
 
-  return (
-    <aside className="bg-card border border-border rounded-3xl p-5 sticky top-24 space-y-6">
+  const activeCount =
+    value.age.length + value.gender.length + value.discount.length + (value.maxPrice < priceBounds.max ? 1 : 0);
+
+  const body = (
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-xl">Filters</h3>
         <button
@@ -83,7 +89,38 @@ export function FiltersPanel({
           className="w-full accent-[var(--color-primary)]"
         />
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle bar */}
+      <div className="lg:hidden sticky top-16 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/90 backdrop-blur-md border-b border-border">
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-full bg-card border border-border shadow-soft text-sm font-semibold"
+        >
+          <span className="inline-flex items-center gap-2">
+            <SlidersHorizontal className="w-4 h-4" /> Filters
+            {activeCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{activeCount}</span>
+            )}
+          </span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${mobileOpen ? "rotate-180" : ""}`} />
+        </button>
+        {mobileOpen && (
+          <div className="mt-2 bg-card border border-border rounded-3xl p-5 shadow-pillow max-h-[70vh] overflow-y-auto">
+            {body}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:block bg-card border border-border rounded-3xl p-5 sticky top-24 self-start">
+        {body}
+      </aside>
+    </>
   );
 }
 
