@@ -228,7 +228,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         gender: form.gender || null,
         age_group: form.age_group || null,
         images: form.images,
-        variants: form.variants.filter((v) => v.size || v.color) as unknown as ProductVariant[],
+        variants: form.variants.filter((v) => v.size || v.color || v.label) as unknown as ProductVariant[],
       };
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
