@@ -201,7 +201,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }
 
   function addVariant() {
-    setForm((f) => ({ ...f, variants: [...f.variants, { size: "", color: "", colorHex: "" }] }));
+    setForm((f) => ({ ...f, variants: [...f.variants, { label: "", size: "", color: "", colorHex: "" }] }));
   }
   function updateVariant(idx: number, patch: Partial<ProductVariant>) {
     setForm((f) => ({ ...f, variants: f.variants.map((v, i) => (i === idx ? { ...v, ...patch } : v)) }));
