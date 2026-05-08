@@ -34,7 +34,7 @@ function ContactPage() {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
@@ -47,15 +47,28 @@ function ContactPage() {
     }
     setErrors({});
     setSending(true);
-    const text = encodeURIComponent(
-      `New inquiry from Baby Fitters\n\nName: ${form.name}\nEmail: ${form.email}\nContact: ${form.contact}\nArea: ${form.area}\n\nMessage:\n${form.message}`,
-    );
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.from("contact_submissions").insert({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        contact: parsed.data.contact,
+        area: parsed.data.area,
+        message: parsed.data.message,
+      });
+      if (error) throw error;
+
+      const text = encodeURIComponent(
+        `New inquiry from Baby Fitters\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nContact: ${parsed.data.contact}\nArea: ${parsed.data.area}\n\nMessage:\n${parsed.data.message}`,
+      );
       window.open(`https://wa.me/923334844845?text=${text}`, "_blank");
-      toast.success("Thanks! We'll get back to you soon.");
+      toast.success("Thanks! Your message has been saved and WhatsApp is opening.");
       setForm({ name: "", email: "", contact: "", area: "", message: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again or message us directly.");
+    } finally {
       setSending(false);
-    }, 400);
+    }
   }
 
   return (
