@@ -29,35 +29,33 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
       <Link
         to="/product/$id"
         params={{ id: product.id }}
-        className="group block relative bg-card rounded-3xl overflow-hidden border border-border hover:shadow-pillow transition-all duration-500 hover:-translate-y-1"
+        className="group block relative"
       >
-        <div className="aspect-square bg-cream overflow-hidden relative">
+        <div className="aspect-[4/5] bg-cream overflow-hidden relative rounded-2xl">
           {product.image_url ? (
             <img
               src={product.image_url}
               alt={product.name}
               loading="lazy"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-blush" />
           )}
-          {hasDiscount && (
-            <div className="absolute top-3 right-3">
-              <span className="px-2.5 py-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold uppercase tracking-wider shadow-soft">
-                -{product.discount_percent}%
-              </span>
-            </div>
-          )}
-          {(product.is_new_arrival || product.is_best_seller) && (
-            <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-              {product.is_new_arrival && (
-                <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+          {(product.is_new_arrival || product.is_best_seller || hasDiscount) && (
+            <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+              {hasDiscount && (
+                <span className="px-2.5 py-1 rounded-full bg-background/95 backdrop-blur text-foreground text-[10px] font-semibold uppercase tracking-[0.16em]">
+                  −{product.discount_percent}%
+                </span>
+              )}
+              {product.is_new_arrival && !hasDiscount && (
+                <span className="px-2.5 py-1 rounded-full bg-background/95 backdrop-blur text-foreground text-[10px] font-semibold uppercase tracking-[0.16em]">
                   New
                 </span>
               )}
               {product.is_best_seller && (
-                <span className="px-2.5 py-1 rounded-full bg-foreground text-background text-[10px] font-bold uppercase tracking-wider">
+                <span className="px-2.5 py-1 rounded-full bg-foreground text-background text-[10px] font-semibold uppercase tracking-[0.16em]">
                   Bestseller
                 </span>
               )}
@@ -65,23 +63,20 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           )}
           <button
             onClick={handleAdd}
-            className="absolute bottom-3 right-3 w-11 h-11 rounded-full bg-foreground text-background flex items-center justify-center shadow-pillow opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:scale-110"
+            className="absolute bottom-3 left-3 right-3 h-11 rounded-full bg-background/95 backdrop-blur text-foreground text-[11px] font-semibold uppercase tracking-[0.18em] flex items-center justify-center gap-2 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-foreground hover:text-background shadow-soft"
             aria-label="Add to cart"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" /> Add to bag
           </button>
         </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+        <div className="pt-4 px-1">
+          <h3 className="text-[15px] font-medium text-foreground line-clamp-1 tracking-tight">
             {product.name}
           </h3>
-          <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
-            {product.description ?? "Soft, safe and sweet."}
-          </p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <p className="font-display text-lg font-semibold">{formatPrice(finalPrice)}</p>
+          <div className="mt-1.5 flex items-baseline gap-2">
+            <p className="text-[14px] text-foreground tracking-tight">{formatPrice(finalPrice)}</p>
             {hasDiscount && (
-              <p className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</p>
+              <p className="text-[13px] text-muted-foreground line-through">{formatPrice(product.price)}</p>
             )}
           </div>
         </div>
@@ -92,12 +87,11 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
 
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-card rounded-3xl overflow-hidden border border-border">
-      <div className="aspect-square skeleton" />
-      <div className="p-4 space-y-2">
+    <div>
+      <div className="aspect-[4/5] skeleton rounded-2xl" />
+      <div className="pt-4 px-1 space-y-2">
         <div className="skeleton h-4 w-3/4 rounded" />
-        <div className="skeleton h-3 w-1/2 rounded" />
-        <div className="skeleton h-5 w-1/3 rounded mt-2" />
+        <div className="skeleton h-4 w-1/3 rounded" />
       </div>
     </div>
   );

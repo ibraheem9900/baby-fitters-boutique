@@ -32,18 +32,18 @@ export function Header() {
     <header className={`sticky top-0 z-40 backdrop-blur-xl bg-background/75 border-b transition-shadow ${scrolled ? "border-border/60 shadow-soft" : "border-transparent"}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-2xl bg-blush flex items-center justify-center shadow-soft group-hover:rotate-6 transition-transform overflow-hidden">
-              <img src={brandMark} alt="Baby Fitters" width={40} height={40} className="w-8 h-8 object-contain" />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-2xl bg-blush flex items-center justify-center group-hover:rotate-6 transition-transform overflow-hidden">
+              <img src={brandMark} alt="Baby Fitters" width={36} height={36} className="w-7 h-7 object-contain" />
             </div>
             <div className="leading-none">
-              <div className="font-display text-xl font-semibold text-foreground">Baby Fitters</div>
-              <div className="text-[10px] tracking-widest uppercase text-muted-foreground">Soft. Safe. Sweet.</div>
+              <div className="font-display text-[20px] font-medium tracking-tight text-foreground">Baby Fitters</div>
+              <div className="text-[9px] tracking-[0.28em] uppercase text-muted-foreground mt-1">Soft · Safe · Sweet</div>
             </div>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-1" onMouseLeave={() => setOpenMenu(null)}>
-            <Link to="/" className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
+          <nav className="hidden lg:flex items-center gap-0.5" onMouseLeave={() => setOpenMenu(null)}>
+            <Link to="/" className="px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
               Home
             </Link>
 
@@ -60,7 +60,7 @@ export function Header() {
                   <Link
                     to={to}
                     params={params as never}
-                    className={`px-3 py-2 text-sm font-semibold hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
+                    className={`px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
                   >
                     {isSale && <Tag className="w-3.5 h-3.5" />}
                     {group.label}
@@ -116,7 +116,7 @@ export function Header() {
               );
             })}
 
-            <Link to="/contact" className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors" activeProps={{ className: "text-primary" }}>
+            <Link to="/contact" className="px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors" activeProps={{ className: "text-primary" }}>
               Contact
             </Link>
           </nav>
