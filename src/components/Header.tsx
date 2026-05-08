@@ -46,7 +46,6 @@ export function Header() {
             <Link to="/" className="px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }}>
               Home
             </Link>
-            </Link>
 
             {NAV_GROUPS.map((group) => {
               const isSale = group.slug === "sale";
