@@ -116,7 +116,7 @@ export function Header() {
               );
             })}
 
-            <Link to="/contact" className="px-3 py-2 text-sm font-semibold hover:text-primary transition-colors" activeProps={{ className: "text-primary" }}>
+            <Link to="/contact" className="px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors" activeProps={{ className: "text-primary" }}>
               Contact
             </Link>
           </nav>
