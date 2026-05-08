@@ -60,7 +60,7 @@ export function Header() {
                   <Link
                     to={to}
                     params={params as never}
-                    className={`px-3 py-2 text-sm font-semibold hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
+                    className={`px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
                   >
                     {isSale && <Tag className="w-3.5 h-3.5" />}
                     {group.label}
