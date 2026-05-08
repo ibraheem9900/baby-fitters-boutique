@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Search, Menu, X, ChevronDown, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { NAV_GROUPS, slugifySub } from "@/lib/taxonomy";
