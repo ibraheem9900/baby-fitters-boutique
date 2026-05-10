@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { CATEGORIES } from "@/lib/categories";
-import { Instagram, Facebook, Twitter } from "lucide-react";
-import brandMark from "@/assets/brand-mark.png";
+import { Instagram, Facebook, Twitter, Mail, Phone } from "lucide-react";
+import { BrandLogo } from "./BrandLogo";
 import { SizeChartModal } from "./SizeChartModal";
+import { WHATSAPP_DISPLAY, SUPPORT_EMAIL, WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
 export function Footer() {
   const [sizeOpen, setSizeOpen] = useState(false);
@@ -12,16 +13,26 @@ export function Footer() {
       <SizeChartModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 grid gap-14 md:grid-cols-12">
         <div className="md:col-span-5">
-          <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 rounded-2xl bg-blush flex items-center justify-center overflow-hidden">
-              <img src={brandMark} alt="Baby Fitters" width={32} height={32} className="w-7 h-7 object-contain" />
-            </div>
+          <div className="flex items-center gap-3 mb-6">
+            <BrandLogo className="w-11 h-11 ring-1 ring-border/60" />
             <span className="font-display text-[22px] font-medium tracking-tight">Baby Fitters</span>
           </div>
           <p className="text-muted-foreground max-w-md leading-relaxed text-[15px]">
             Thoughtfully curated baby essentials — soft fabrics, gentle care, and toys that spark joy. Made for the
             tiniest humans, designed for the parents who love them.
           </p>
+          <ul className="mt-6 space-y-2 text-sm">
+            <li className="flex items-center gap-2 text-muted-foreground">
+              <Phone className="w-4 h-4 text-primary" />
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer" className="link-underline hover:text-primary">
+                WhatsApp · {WHATSAPP_DISPLAY}
+              </a>
+            </li>
+            <li className="flex items-center gap-2 text-muted-foreground">
+              <Mail className="w-4 h-4 text-primary" />
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="link-underline hover:text-primary">{SUPPORT_EMAIL}</a>
+            </li>
+          </ul>
           <div className="flex gap-2 mt-8">
             {[Instagram, Facebook, Twitter].map((Icon, i) => (
               <a
@@ -51,8 +62,8 @@ export function Footer() {
         <div className="md:col-span-3">
           <h4 className="eyebrow mb-5">Help</h4>
           <ul className="space-y-3">
-            <li><a href="#" className="text-[14px] link-underline hover:text-primary transition-colors">Shipping</a></li>
-            <li><a href="#" className="text-[14px] link-underline hover:text-primary transition-colors">Returns</a></li>
+            <li><Link to="/shipping" className="text-[14px] link-underline hover:text-primary transition-colors">Shipping Policy</Link></li>
+            <li><Link to="/returns" className="text-[14px] link-underline hover:text-primary transition-colors">Return & Exchange</Link></li>
             <li><button type="button" onClick={() => setSizeOpen(true)} className="text-[14px] link-underline hover:text-primary transition-colors">Size Chart</button></li>
             <li><Link to="/contact" className="text-[14px] link-underline hover:text-primary transition-colors">Contact</Link></li>
           </ul>
