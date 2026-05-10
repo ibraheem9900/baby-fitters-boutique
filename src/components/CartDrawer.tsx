@@ -4,7 +4,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/categories";
 import { Link } from "@tanstack/react-router";
 import { buildWhatsappCheckoutUrl } from "@/lib/whatsapp";
-import brandMark from "@/assets/brand-mark.png";
+import { BrandLogo } from "./BrandLogo";
 
 export function CartDrawer() {
   const { items, open, setOpen, setQty, remove, subtotal, clear } = useCart();
