@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
 import { fetchProducts, type Product, type ProductVariant } from "@/lib/products";
-import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS } from "@/lib/taxonomy";
+import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS, BABY_SIZES } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
-import brandMark from "@/assets/brand-mark.png";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/secret-portal")({
   component: SecretPortal,
@@ -64,9 +64,7 @@ function PasscodeGate({ onSuccess }: { onSuccess: () => void }) {
         className="w-full max-w-sm bg-card rounded-3xl border border-border shadow-pillow p-8"
       >
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-blush flex items-center justify-center overflow-hidden">
-            <img src={brandMark} alt="" width={48} height={48} className="w-12 h-12 object-contain" />
-          </div>
+          <BrandLogo className="w-20 h-20 ring-1 ring-border shadow-soft" />
         </div>
         <div className="text-center mb-6">
           <h1 className="font-display text-2xl flex items-center justify-center gap-2">
@@ -282,9 +280,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b border-border">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blush flex items-center justify-center overflow-hidden">
-              <img src={brandMark} alt="" width={28} height={28} className="w-7 h-7 object-contain" />
-            </div>
+            <BrandLogo className="w-10 h-10 ring-1 ring-border" />
             <div>
               <p className="font-display font-semibold leading-none">Admin Portal</p>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Baby Fitters</p>
@@ -454,6 +450,47 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </Field>
               </div>
               <div className="md:col-span-2">
+                <Field label="Available sizes (multi-select)">
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Tick every size this product is available in. No need to add a separate variant per size.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {BABY_SIZES.map((s) => {
+                        const sizesVariant = form.variants.find((v) => Array.isArray(v.sizes));
+                        const active = !!sizesVariant?.sizes?.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setForm((f) => {
+                                const idx = f.variants.findIndex((v) => Array.isArray(v.sizes));
+                                const current = idx >= 0 ? (f.variants[idx].sizes ?? []) : [];
+                                const next = current.includes(s) ? current.filter((x) => x !== s) : [...current, s];
+                                let variants = [...f.variants];
+                                if (idx >= 0) {
+                                  if (next.length === 0) variants.splice(idx, 1);
+                                  else variants[idx] = { ...variants[idx], sizes: next };
+                                } else if (next.length) {
+                                  variants = [{ label: "Size", sizes: next }, ...variants];
+                                }
+                                return { ...f, variants };
+                              });
+                            }}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                              active
+                                ? "bg-foreground text-background border-foreground shadow-soft"
+                                : "bg-background border-border hover:bg-blush"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </Field>
+              </div>
+              <div className="md:col-span-2">
                 <Field label="Variants (size, color, or any custom attribute)">
                   <div className="space-y-2">
                     {form.variants.length === 0 && (
@@ -573,7 +610,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                             {p.image_url ? (
                               <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                             ) : (
-                              <img src={brandMark} alt="" width={32} height={32} className="w-8 h-8 object-contain" />
+                              <BrandLogo className="w-9 h-9" />
                             )}
                           </div>
                           <span className="font-semibold">{p.name}</span>

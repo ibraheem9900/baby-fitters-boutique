@@ -19,7 +19,7 @@ export const NAV_GROUPS: NavGroup[] = [
           "Body Suit & Vests",
           "Socks & Booties",
           "Bedding & Blankets",
-          "Playpens",
+          "Playland",
           "Bags & Bibs",
           "Misc",
         ],
@@ -105,6 +105,13 @@ export function subFromSlug(categorySlug: string, sub: string): string | undefin
 
 // Common size/color presets used in admin variant builder + product page
 export const SIZE_PRESETS = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+
+// Baby/kids age-based sizes for multi-select size pickers
+export const BABY_SIZES = [
+  "0-3M", "3-6M", "6-12M",
+  "1-2Y", "2-3Y", "3-4Y", "4-5Y", "5-6Y",
+  "7-8Y", "9-10Y", "11-12Y", "13-14Y",
+] as const;
 export const COLOR_PRESETS = [
   { name: "Pink", hex: "#f9a8d4" },
   { name: "Blue", hex: "#93c5fd" },

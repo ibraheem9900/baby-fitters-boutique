@@ -4,7 +4,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/categories";
 import { Link } from "@tanstack/react-router";
 import { buildWhatsappCheckoutUrl } from "@/lib/whatsapp";
-import brandMark from "@/assets/brand-mark.png";
+import { BrandLogo } from "./BrandLogo";
 
 export function CartDrawer() {
   const { items, open, setOpen, setQty, remove, subtotal, clear } = useCart();
@@ -43,9 +43,7 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-12">
-                  <div className="w-20 h-20 rounded-full bg-blush flex items-center justify-center overflow-hidden">
-                    <img src={brandMark} alt="" width={64} height={64} className="w-16 h-16 object-contain" />
-                  </div>
+                  <BrandLogo className="w-20 h-20 ring-1 ring-border" />
                   <div>
                     <p className="font-display text-xl font-semibold">Your cart is empty</p>
                     <p className="text-muted-foreground text-sm mt-1">Add some adorable goodies to get started.</p>
@@ -65,7 +63,7 @@ export function CartDrawer() {
                         {i.image_url ? (
                           <img src={i.image_url} alt={i.name} className="w-full h-full object-cover" loading="lazy" />
                         ) : (
-                          <img src={brandMark} alt="" width={48} height={48} className="w-12 h-12 m-auto object-contain" />
+                          <BrandLogo className="w-full h-full" rounded="rounded-xl" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">

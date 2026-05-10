@@ -3,9 +3,12 @@ import type { CategorySlug } from "./categories";
 
 export type ProductVariant = {
   size?: string;
+  sizes?: string[];        // multi-size variant (admin checkbox group)
   color?: string;
   colorHex?: string;
-  label?: string;
+  label?: string;          // custom attribute name (e.g. "Material")
+  value?: string;          // custom attribute value
+  values?: string[];       // multiple custom values
 };
 
 export type Product = {

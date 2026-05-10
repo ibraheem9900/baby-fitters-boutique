@@ -9,15 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as SecretPortalRouteImport } from './routes/secret-portal'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SaleRouteImport } from './routes/sale'
+import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as CategorySlugSubRouteImport } from './routes/category.$slug.$sub'
 
+const ShippingRoute = ShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SecretPortalRoute = SecretPortalRouteImport.update({
   id: '/secret-portal',
   path: '/secret-portal',
@@ -31,6 +38,11 @@ const SearchRoute = SearchRouteImport.update({
 const SaleRoute = SaleRouteImport.update({
   id: '/sale',
   path: '/sale',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -62,9 +74,11 @@ const CategorySlugSubRoute = CategorySlugSubRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
+  '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
+  '/shipping': typeof ShippingRoute
   '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/category/$slug/$sub': typeof CategorySlugSubRoute
@@ -72,9 +86,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
+  '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
+  '/shipping': typeof ShippingRoute
   '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/category/$slug/$sub': typeof CategorySlugSubRoute
@@ -83,9 +99,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
+  '/returns': typeof ReturnsRoute
   '/sale': typeof SaleRoute
   '/search': typeof SearchRoute
   '/secret-portal': typeof SecretPortalRoute
+  '/shipping': typeof ShippingRoute
   '/category/$slug': typeof CategorySlugRouteWithChildren
   '/product/$id': typeof ProductIdRoute
   '/category/$slug/$sub': typeof CategorySlugSubRoute
@@ -95,9 +113,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/contact'
+    | '/returns'
     | '/sale'
     | '/search'
     | '/secret-portal'
+    | '/shipping'
     | '/category/$slug'
     | '/product/$id'
     | '/category/$slug/$sub'
@@ -105,9 +125,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/contact'
+    | '/returns'
     | '/sale'
     | '/search'
     | '/secret-portal'
+    | '/shipping'
     | '/category/$slug'
     | '/product/$id'
     | '/category/$slug/$sub'
@@ -115,9 +137,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/contact'
+    | '/returns'
     | '/sale'
     | '/search'
     | '/secret-portal'
+    | '/shipping'
     | '/category/$slug'
     | '/product/$id'
     | '/category/$slug/$sub'
@@ -126,15 +150,24 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactRoute: typeof ContactRoute
+  ReturnsRoute: typeof ReturnsRoute
   SaleRoute: typeof SaleRoute
   SearchRoute: typeof SearchRoute
   SecretPortalRoute: typeof SecretPortalRoute
+  ShippingRoute: typeof ShippingRoute
   CategorySlugRoute: typeof CategorySlugRouteWithChildren
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/secret-portal': {
       id: '/secret-portal'
       path: '/secret-portal'
@@ -154,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/sale'
       fullPath: '/sale'
       preLoaderRoute: typeof SaleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -209,9 +249,11 @@ const CategorySlugRouteWithChildren = CategorySlugRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactRoute: ContactRoute,
+  ReturnsRoute: ReturnsRoute,
   SaleRoute: SaleRoute,
   SearchRoute: SearchRoute,
   SecretPortalRoute: SecretPortalRoute,
+  ShippingRoute: ShippingRoute,
   CategorySlugRoute: CategorySlugRouteWithChildren,
   ProductIdRoute: ProductIdRoute,
 }

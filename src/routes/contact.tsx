@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PageLayout } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { WHATSAPP_NUMBER, WHATSAPP_DISPLAY, SUPPORT_EMAIL } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
@@ -60,7 +61,7 @@ function ContactPage() {
       const text = encodeURIComponent(
         `New inquiry from Baby Fitters\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nContact: ${parsed.data.contact}\nArea: ${parsed.data.area}\n\nMessage:\n${parsed.data.message}`,
       );
-      window.open(`https://wa.me/923334844845?text=${text}`, "_blank");
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${text}`, "_blank");
       toast.success("Thanks! Your message has been saved and WhatsApp is opening.");
       setForm({ name: "", email: "", contact: "", area: "", message: "" });
     } catch (err) {
@@ -122,8 +123,8 @@ function ContactPage() {
             </div>
 
             <div className="space-y-3">
-              <InfoCard icon={<Phone className="w-5 h-5" />} title="WhatsApp" lines={["+92 333 4844845"]} />
-              <InfoCard icon={<Mail className="w-5 h-5" />} title="Email" lines={["hello@babyfitters.pk"]} />
+              <InfoCard icon={<Phone className="w-5 h-5" />} title="WhatsApp" lines={[WHATSAPP_DISPLAY]} />
+              <InfoCard icon={<Mail className="w-5 h-5" />} title="Email" lines={[SUPPORT_EMAIL]} />
               <InfoCard icon={<MapPin className="w-5 h-5" />} title="Location" lines={["Pakistan"]} />
             </div>
           </div>
