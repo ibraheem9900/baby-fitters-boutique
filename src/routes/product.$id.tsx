@@ -33,10 +33,14 @@ function ProductPage() {
 
   const images = useMemo(() => (product ? productImages(product) : []), [product]);
   const variants = product?.variants ?? [];
-  const sizes = useMemo(
-    () => Array.from(new Set(variants.map((v) => v.size).filter((s): s is string => !!s))),
-    [variants],
-  );
+  const sizes = useMemo(() => {
+    const set = new Set<string>();
+    variants.forEach((v) => {
+      if (v.size) set.add(v.size);
+      if (Array.isArray(v.sizes)) v.sizes.forEach((s) => s && set.add(s));
+    });
+    return Array.from(set);
+  }, [variants]);
   const colors = useMemo(() => {
     const map = new Map<string, { color: string; colorHex?: string }>();
     variants.forEach((v) => {
