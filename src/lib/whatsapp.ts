@@ -1,8 +1,10 @@
 import type { CartItem } from "./cart";
 import { formatPrice } from "./categories";
 
-// WhatsApp business number (Pakistan): 0333 4844845 -> +92 333 4844845
-export const WHATSAPP_NUMBER = "923334844845";
+// WhatsApp business number (Pakistan): 0304 4844845 -> +92 304 4844845
+export const WHATSAPP_NUMBER = "923044844845";
+export const WHATSAPP_DISPLAY = "0304-4844845";
+export const SUPPORT_EMAIL = "Babyfitters.online@gmail.com";
 
 export function buildWhatsappCheckoutUrl(items: CartItem[], subtotal: number) {
   const lines = items.map(
