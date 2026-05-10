@@ -450,6 +450,47 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </Field>
               </div>
               <div className="md:col-span-2">
+                <Field label="Available sizes (multi-select)">
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Tick every size this product is available in. No need to add a separate variant per size.</p>
+                    <div className="flex flex-wrap gap-2">
+                      {BABY_SIZES.map((s) => {
+                        const sizesVariant = form.variants.find((v) => Array.isArray(v.sizes));
+                        const active = !!sizesVariant?.sizes?.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setForm((f) => {
+                                const idx = f.variants.findIndex((v) => Array.isArray(v.sizes));
+                                const current = idx >= 0 ? (f.variants[idx].sizes ?? []) : [];
+                                const next = current.includes(s) ? current.filter((x) => x !== s) : [...current, s];
+                                let variants = [...f.variants];
+                                if (idx >= 0) {
+                                  if (next.length === 0) variants.splice(idx, 1);
+                                  else variants[idx] = { ...variants[idx], sizes: next };
+                                } else if (next.length) {
+                                  variants = [{ label: "Size", sizes: next }, ...variants];
+                                }
+                                return { ...f, variants };
+                              });
+                            }}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                              active
+                                ? "bg-foreground text-background border-foreground shadow-soft"
+                                : "bg-background border-border hover:bg-blush"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </Field>
+              </div>
+              <div className="md:col-span-2">
                 <Field label="Variants (size, color, or any custom attribute)">
                   <div className="space-y-2">
                     {form.variants.length === 0 && (
