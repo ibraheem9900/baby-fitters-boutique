@@ -569,7 +569,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                             {p.image_url ? (
                               <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                             ) : (
-                              <img src={brandMark} alt="" width={32} height={32} className="w-8 h-8 object-contain" />
+                              <BrandLogo className="w-9 h-9" />
                             )}
                           </div>
                           <span className="font-semibold">{p.name}</span>
