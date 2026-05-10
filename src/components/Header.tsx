@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { NAV_GROUPS, slugifySub } from "@/lib/taxonomy";
-import brandMark from "@/assets/brand-mark.png";
+import { BrandLogo } from "./BrandLogo";
 
 export function Header() {
   const { count, setOpen } = useCart();
@@ -32,10 +32,8 @@ export function Header() {
     <header className={`sticky top-0 z-40 backdrop-blur-xl bg-background/75 border-b transition-shadow ${scrolled ? "border-border/60 shadow-soft" : "border-transparent"}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-2xl bg-blush flex items-center justify-center group-hover:rotate-6 transition-transform overflow-hidden">
-              <img src={brandMark} alt="Baby Fitters" width={36} height={36} className="w-7 h-7 object-contain" />
-            </div>
+          <Link to="/" className="flex items-center gap-3 group">
+            <BrandLogo className="w-11 h-11 ring-1 ring-border/60 shadow-soft group-hover:scale-105 transition-transform" />
             <div className="leading-none">
               <div className="font-display text-[20px] font-medium tracking-tight text-foreground">Baby Fitters</div>
               <div className="text-[9px] tracking-[0.28em] uppercase text-muted-foreground mt-1">Soft · Safe · Sweet</div>
