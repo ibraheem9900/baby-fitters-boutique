@@ -13,9 +13,8 @@ export function Footer() {
       <SizeChartModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 grid gap-14 md:grid-cols-12">
         <div className="md:col-span-5">
-          <div className="flex items-center gap-3 mb-6">
-            <BrandLogo className="w-11 h-11 ring-1 ring-border/60" />
-            <span className="font-display text-[22px] font-medium tracking-tight">Baby Fitters</span>
+          <div className="mb-6">
+            <BrandLogo className="h-14 w-auto aspect-[16/9]" rounded="rounded-xl" />
           </div>
           <p className="text-muted-foreground max-w-md leading-relaxed text-[15px]">
             Thoughtfully curated baby essentials — soft fabrics, gentle care, and toys that spark joy. Made for the
