@@ -17,6 +17,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const [products, setProducts] = useState<Product[] | null>(null);
+  const { categoriesWithImages: CATEGORIES } = useCategoryImages();
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
