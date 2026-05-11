@@ -8,6 +8,7 @@ import { fetchProducts, type Product, type ProductVariant } from "@/lib/products
 import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS, BABY_SIZES } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CategoryImagesManager } from "@/components/CategoryImagesManager";
 
 export const Route = createFileRoute("/secret-portal")({
   component: SecretPortal,
