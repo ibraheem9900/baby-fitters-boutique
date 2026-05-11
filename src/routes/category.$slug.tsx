@@ -78,7 +78,7 @@ function CategoryPage() {
             </p>
           </div>
           <div className="rounded-3xl overflow-hidden shadow-pillow aspect-[4/3] bg-card">
-            <img src={cat.image} alt={cat.label} width={768} height={576} className="w-full h-full object-cover" />
+            <img src={getImage(slug)} alt={cat.label} width={768} height={576} className="w-full h-full object-cover" />
           </div>
         </div>
       </section>
