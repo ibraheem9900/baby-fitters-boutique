@@ -32,12 +32,8 @@ export function Header() {
     <header className={`sticky top-0 z-40 backdrop-blur-xl bg-background/75 border-b transition-shadow ${scrolled ? "border-border/60 shadow-soft" : "border-transparent"}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-3 group">
-            <BrandLogo className="w-11 h-11 ring-1 ring-border/60 shadow-soft group-hover:scale-105 transition-transform" />
-            <div className="leading-none">
-              <div className="font-display text-[20px] font-medium tracking-tight text-foreground">Baby Fitters</div>
-              <div className="text-[9px] tracking-[0.28em] uppercase text-muted-foreground mt-1">Soft · Safe · Sweet</div>
-            </div>
+          <Link to="/" className="flex items-center group" aria-label="Baby Fitters home">
+            <BrandLogo className="h-12 md:h-14 w-auto aspect-[16/9] group-hover:scale-[1.03] transition-transform" rounded="rounded-xl" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-0.5" onMouseLeave={() => setOpenMenu(null)}>
