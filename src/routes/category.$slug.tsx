@@ -21,6 +21,7 @@ function CategoryPage() {
   const { slug } = Route.useParams();
   const { sub } = Route.useSearch();
   const cat = CATEGORIES.find((c) => c.slug === slug);
+  const { getImage } = useCategoryImages();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
