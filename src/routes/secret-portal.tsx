@@ -8,6 +8,7 @@ import { fetchProducts, type Product, type ProductVariant } from "@/lib/products
 import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS, BABY_SIZES } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/BrandLogo";
+import { CategoryImagesManager } from "@/components/CategoryImagesManager";
 
 export const Route = createFileRoute("/secret-portal")({
   component: SecretPortal,
@@ -312,6 +313,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add product</>}
           </button>
         </div>
+
+        <CategoryImagesManager />
 
         {showForm && (
           <form onSubmit={handleSubmit} className="bg-card rounded-3xl border border-border p-6 md:p-8 mb-10 shadow-soft">

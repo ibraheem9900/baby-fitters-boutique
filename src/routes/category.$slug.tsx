@@ -4,6 +4,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { FiltersPanel, applyFilters, defaultFilters, type FilterState } from "@/components/FiltersPanel";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
+import { useCategoryImages } from "@/lib/category-images";
 import { fetchProducts, type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,6 +21,7 @@ function CategoryPage() {
   const { slug } = Route.useParams();
   const { sub } = Route.useSearch();
   const cat = CATEGORIES.find((c) => c.slug === slug);
+  const { getImage } = useCategoryImages();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
 
@@ -76,7 +78,7 @@ function CategoryPage() {
             </p>
           </div>
           <div className="rounded-3xl overflow-hidden shadow-pillow aspect-[4/3] bg-card">
-            <img src={cat.image} alt={cat.label} width={768} height={576} className="w-full h-full object-cover" />
+            <img src={getImage(slug)} alt={cat.label} width={768} height={576} className="w-full h-full object-cover" />
           </div>
         </div>
       </section>
