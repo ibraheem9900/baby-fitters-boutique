@@ -1,24 +1,31 @@
 import logo from "@/assets/babyfitters-logo.jpeg";
 
 /**
- * Official Baby Fitters wordmark. The source image has a white border
- * which we crop visually with object-cover + a slight scale so the colorful
- * mark sits cleanly on transparent / pastel backgrounds without a visible
- * white box.
+ * Official Baby Fitters wordmark.
+ * - `fit="contain"` (default for navbar/footer) preserves full wordmark.
+ * - `fit="cover"` crops to fill — used for square avatar-style placements.
  */
 export function BrandLogo({
   className = "",
-  rounded = "rounded-2xl",
+  rounded = "rounded-xl",
+  fit = "contain",
 }: {
   className?: string;
   rounded?: string;
+  fit?: "contain" | "cover";
 }) {
   return (
-    <span className={`relative inline-block overflow-hidden ${rounded} ${className}`}>
+    <span
+      className={`relative inline-block overflow-hidden ${rounded} ${className}`}
+      style={{ background: "transparent" }}
+    >
       <img
         src={logo}
         alt="Baby Fitters"
-        className="absolute inset-0 w-full h-full object-cover scale-[1.18]"
+        className={`absolute inset-0 w-full h-full ${
+          fit === "cover" ? "object-cover scale-[1.18]" : "object-contain"
+        }`}
+        style={{ mixBlendMode: "multiply" }}
         draggable={false}
       />
     </span>
