@@ -314,6 +314,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </button>
         </div>
 
+        <CategoryImagesManager />
+
         {showForm && (
           <form onSubmit={handleSubmit} className="bg-card rounded-3xl border border-border p-6 md:p-8 mb-10 shadow-soft">
             <h2 className="font-display text-2xl mb-6">{form.id ? "Edit product" : "New product"}</h2>
