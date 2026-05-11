@@ -4,6 +4,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { FiltersPanel, applyFilters, defaultFilters, type FilterState } from "@/components/FiltersPanel";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
+import { useCategoryImages } from "@/lib/category-images";
 import { fetchProducts, type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 
