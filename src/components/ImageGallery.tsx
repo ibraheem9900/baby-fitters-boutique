@@ -105,13 +105,19 @@ export function ImageGallery({ images, alt }: { images: string[]; alt: string })
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-sm flex items-center justify-center"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-sm"
             onClick={() => setZoom(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image viewer"
           >
+            {/* Close button — always on top, large tap target */}
             <button
+              type="button"
               onClick={(e) => { e.stopPropagation(); setZoom(false); }}
               aria-label="Close"
-              className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur"
+              className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[130] w-12 h-12 rounded-full bg-white text-black hover:bg-white/90 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
             >
               <X className="w-5 h-5" />
             </button>
@@ -119,26 +125,25 @@ export function ImageGallery({ images, alt }: { images: string[]; alt: string })
             {safe.length > 1 && (
               <>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); go(-1); }}
                   aria-label="Previous"
-                  className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur z-10"
+                  className="fixed left-3 sm:left-6 top-1/2 -translate-y-1/2 z-[130] w-12 h-12 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur active:scale-95 transition-transform"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); go(1); }}
                   aria-label="Next"
-                  className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur z-10"
+                  className="fixed right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[130] w-12 h-12 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur active:scale-95 transition-transform"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
               </>
             )}
 
-            <div
-              className="relative w-full h-full flex items-center justify-center px-4 py-16"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="relative w-full h-full flex items-center justify-center px-4 py-20 pointer-events-none">
               <AnimatePresence mode="wait" custom={idx}>
                 <motion.img
                   key={current}
@@ -154,18 +159,20 @@ export function ImageGallery({ images, alt }: { images: string[]; alt: string })
                   initial={{ opacity: 0, scale: 0.96, x: 40 }}
                   animate={{ opacity: 1, scale: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.98, x: -40 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl select-none cursor-grab active:cursor-grabbing"
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl select-none cursor-grab active:cursor-grabbing pointer-events-auto"
                   draggable={false}
                 />
               </AnimatePresence>
             </div>
 
             {safe.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[130] flex gap-1.5">
                 {safe.map((_, i) => (
                   <button
                     key={i}
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); setIdx(i); }}
                     className={`h-1.5 rounded-full transition-all ${
                       i === idx ? "w-8 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
