@@ -248,3 +248,14 @@
   }
 }
 
+/* Wide, balanced container for ultra-wide displays */
+.container {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 100%;
+}
+@media (min-width: 1280px) { .container { max-width: 1200px; } }
+@media (min-width: 1536px) { .container { max-width: 1360px; } }
+@media (min-width: 1800px) { .container { max-width: 1520px; } }
+@media (min-width: 2100px) { .container { max-width: 1680px; } }
+
