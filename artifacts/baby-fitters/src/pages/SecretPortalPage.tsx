@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw, Inbox, Phone, Mail, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
@@ -131,7 +131,7 @@ const emptyForm: FormState = {
 };
 
 const MAX_IMAGES = 6;
-type AdminTab = "products" | "images" | "hero" | "popups" | "sizechart";
+type AdminTab = "products" | "images" | "hero" | "popups" | "sizechart" | "inquiries";
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -289,6 +289,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
     { id: "products",  label: "Products",       icon: <Plus className="w-4 h-4" /> },
+    { id: "inquiries", label: "Inquiries",      icon: <Inbox className="w-4 h-4" /> },
     { id: "images",    label: "Category Images", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "hero",      label: "Hero Image",      icon: <ImageIcon className="w-4 h-4" /> },
     { id: "popups",    label: "Hero Popups",     icon: <MessageSquare className="w-4 h-4" /> },
@@ -657,6 +658,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </>
         )}
 
+        {activeTab === "inquiries" && <InquiriesManager />}
         {activeTab === "images" && <CategoryImagesManager />}
         {activeTab === "hero" && <HeroImageManager />}
         {activeTab === "popups" && <PopupsManager />}
@@ -910,6 +912,173 @@ function SizeChartManager() {
           <RotateCcw className="w-4 h-4" /> Reset defaults
         </button>
       </div>
+    </section>
+  );
+}
+
+type Inquiry = {
+  id: string;
+  name: string;
+  email: string;
+  contact: string;
+  area: string;
+  message: string;
+  created_at: string;
+};
+
+function InquiriesManager() {
+  const [inquiries, setInquiries] = useState<Inquiry[] | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const { data } = await supabase
+          .from("contact_submissions")
+          .select("*")
+          .order("created_at", { ascending: false });
+        setInquiries((data as Inquiry[]) ?? []);
+      } catch {
+        setInquiries([]);
+      }
+    }
+    load();
+    const channel = supabase
+      .channel("inquiries-admin")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "contact_submissions" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  function fmt(iso: string) {
+    try {
+      return new Intl.DateTimeFormat("en-PK", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+    } catch { return iso; }
+  }
+
+  return (
+    <section className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-soft">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-full bg-blush flex items-center justify-center">
+          <Inbox className="w-4 h-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="font-display text-2xl">Customer Inquiries</h2>
+          <p className="text-sm text-muted-foreground">
+            All messages submitted through the contact form.
+          </p>
+        </div>
+        {inquiries !== null && (
+          <span className="ml-auto px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+            {inquiries.length}
+          </span>
+        )}
+      </div>
+
+      {inquiries === null ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton h-20 rounded-2xl" />
+          ))}
+        </div>
+      ) : inquiries.length === 0 ? (
+        <div className="text-center py-16 bg-muted/40 rounded-2xl border border-dashed border-border">
+          <Inbox className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="font-semibold text-muted-foreground">No inquiries yet</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">Messages submitted through the contact form will appear here.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {inquiries.map((inq) => (
+            <div
+              key={inq.id}
+              className="bg-background border border-border rounded-2xl overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setExpanded(expanded === inq.id ? null : inq.id)}
+                className="w-full flex items-start gap-4 p-4 text-left hover:bg-muted/40 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blush flex items-center justify-center flex-shrink-0 font-display text-lg font-bold text-primary">
+                  {inq.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="font-semibold">{inq.name}</span>
+                    <span className="text-xs text-muted-foreground">{fmt(inq.created_at)}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5 truncate">{inq.message}</p>
+                </div>
+                <div className="flex gap-3 items-center flex-shrink-0 ml-2">
+                  {inq.contact && (
+                    <a
+                      href={`https://wa.me/${inq.contact.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 text-green-700 flex items-center justify-center transition-colors"
+                      title="Reply on WhatsApp"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {inq.email && inq.email !== "" && (
+                    <a
+                      href={`mailto:${inq.email}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-full bg-sky hover:bg-sky/70 text-blue-700 flex items-center justify-center transition-colors"
+                      title="Reply by email"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  <span className={`text-muted-foreground transition-transform ${expanded === inq.id ? "rotate-180" : ""}`}>
+                    ▾
+                  </span>
+                </div>
+              </button>
+
+              {expanded === inq.id && (
+                <div className="border-t border-border px-4 pb-4 pt-3 space-y-3 bg-muted/20">
+                  <div className="grid sm:grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium">{inq.contact || "—"}</span>
+                    </div>
+                    {inq.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">{inq.email}</span>
+                      </div>
+                    )}
+                    {inq.area && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">{inq.area}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-background rounded-xl p-3.5 border border-border">
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1.5">Message</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{inq.message}</p>
+                  </div>
+                  {inq.contact && (
+                    <a
+                      href={`https://wa.me/${inq.contact.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi ${inq.name}! Thanks for reaching out to Baby Fitters. `)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      Reply on WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
