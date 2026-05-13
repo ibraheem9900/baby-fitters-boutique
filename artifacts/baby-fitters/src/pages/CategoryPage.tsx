@@ -1,8 +1,9 @@
-import { Link, useParams } from "wouter";
+import { Link, useParams, useSearch } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
-import { FiltersPanel, applyFilters, defaultFilters, type FilterState } from "@/components/FiltersPanel";
+import { FiltersPanel } from "@/components/FiltersPanel";
+import { applyFilters, defaultFilters, type FilterState } from "@/lib/filter-utils";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
 import { useCategoryImages } from "@/lib/category-images";
 import { fetchProducts, type Product } from "@/lib/products";
@@ -11,10 +12,23 @@ import { supabase } from "@/integrations/supabase/client";
 export function CategoryPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
+  const searchStr = useSearch();
+  const genderFromUrl = new URLSearchParams(searchStr).get("gender") ?? "";
+
   const cat = CATEGORIES.find((c) => c.slug === slug);
   const { getImage } = useCategoryImages();
   const [products, setProducts] = useState<Product[] | null>(null);
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    ...defaultFilters,
+    gender: genderFromUrl ? [genderFromUrl] : [],
+  }));
+
+  useEffect(() => {
+    setFilters((f) => ({
+      ...f,
+      gender: genderFromUrl ? [genderFromUrl] : [],
+    }));
+  }, [genderFromUrl]);
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
@@ -47,7 +61,7 @@ export function CategoryPage() {
   if (!cat) {
     return (
       <PageLayout>
-        <div className="container mx-auto px-4 py-20 text-center">
+        <div className="site-container py-20 text-center">
           <h1 className="font-display text-4xl">Category not found</h1>
           <Link to="/" className="text-primary mt-4 inline-block">← Go home</Link>
         </div>
@@ -55,13 +69,17 @@ export function CategoryPage() {
     );
   }
 
+  const genderLabel = genderFromUrl === "boys" ? "Boys" : genderFromUrl === "girls" ? "Girls" : null;
+
   return (
     <PageLayout>
       <section className={`${cat.tint} relative overflow-hidden`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 grid md:grid-cols-2 gap-8 items-center">
+        <div className="site-container py-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h1 className="font-display text-5xl sm:text-6xl">{cat.label}</h1>
-            <p className="mt-3 text-muted-foreground max-w-md">
+            <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl">
+              {genderLabel ? `${genderLabel}'s ` : ""}{cat.label}
+            </h1>
+            <p className="mt-4 text-muted-foreground max-w-md text-[16px] leading-relaxed">
               Carefully curated {cat.label.toLowerCase()} for the little stars in your life.
             </p>
           </div>
@@ -71,7 +89,7 @@ export function CategoryPage() {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 grid lg:grid-cols-[280px_1fr] gap-8">
+      <section className="site-container py-12 grid lg:grid-cols-[300px_1fr] gap-8">
         <FiltersPanel value={filters} onChange={setFilters} priceBounds={priceBounds} />
         <div>
           {products === null ? (
@@ -82,7 +100,10 @@ export function CategoryPage() {
             <EmptyState />
           ) : (
             <>
-              <p className="text-sm text-muted-foreground mb-6">{filtered.length} product{filtered.length !== 1 ? "s" : ""}</p>
+              <p className="text-sm text-muted-foreground mb-6 font-medium">
+                {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+                {genderLabel ? ` · ${genderLabel}` : ""}
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
                 {filtered.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
               </div>
@@ -98,7 +119,7 @@ function EmptyState() {
   return (
     <div className="text-center py-20 bg-card border border-border rounded-3xl">
       <h2 className="font-display text-3xl">No products found</h2>
-      <p className="text-muted-foreground mt-3">Try adjusting your filters or check back later.</p>
+      <p className="text-muted-foreground mt-3 text-[15px]">Try adjusting your filters or check back later.</p>
     </div>
   );
 }

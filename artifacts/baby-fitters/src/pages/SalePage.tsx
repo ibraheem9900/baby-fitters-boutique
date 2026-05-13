@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Tag } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
-import { FiltersPanel, applyFilters, defaultFilters, type FilterState } from "@/components/FiltersPanel";
+import { FiltersPanel } from "@/components/FiltersPanel";
+import { applyFilters, defaultFilters, type FilterState } from "@/lib/filter-utils";
 import { fetchProducts, type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
 

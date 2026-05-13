@@ -33,16 +33,20 @@ export function Header() {
 
   return (
     <header className={`sticky top-0 z-40 backdrop-blur-xl bg-background/75 border-b transition-shadow ${scrolled ? "border-border/60 shadow-soft" : "border-transparent"}`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="site-container">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center group" aria-label="Baby Fitters home">
-            <BrandLogo className="h-12 md:h-14 w-auto aspect-[16/9] group-hover:scale-[1.03] transition-transform" rounded="rounded-xl" />
+
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Baby Fitters home">
+            <BrandLogo className="h-10 md:h-12 w-auto aspect-[1/1] group-hover:scale-[1.03] transition-transform" rounded="rounded-xl" />
+            <span className="hidden sm:block font-display text-[18px] font-medium tracking-tight leading-none text-foreground group-hover:text-primary transition-colors select-none">
+              Baby Fitters
+            </span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-0.5" onMouseLeave={() => setOpenMenu(null)}>
             <Link
               to="/"
-              className={`px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors ${isActive("/") ? "text-primary" : ""}`}
+              className={`px-4 py-2 text-[13.5px] font-semibold tracking-wide hover:text-primary transition-colors ${isActive("/") ? "text-primary" : ""}`}
             >
               Home
             </Link>
@@ -54,7 +58,7 @@ export function Header() {
                 <div key={group.label} className="relative" onMouseEnter={() => setOpenMenu(group.label)}>
                   <Link
                     to={href}
-                    className={`px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
+                    className={`px-4 py-2 text-[13.5px] font-semibold tracking-wide hover:text-primary transition-colors inline-flex items-center gap-1 ${isSale ? "text-primary" : ""}`}
                   >
                     {isSale && <Tag className="w-3.5 h-3.5" />}
                     {group.label}
@@ -79,27 +83,23 @@ export function Header() {
                                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">{col.heading}</p>
                               )}
                               <ul className="space-y-1">
-                                {col.items.map((item) => (
-                                  <li key={item}>
-                                    {isSale ? (
+                                {col.items.map((item) => {
+                                  const genderSuffix = col.gender ? `?gender=${col.gender}` : "";
+                                  const itemLink = isSale
+                                    ? `/sale?sub=${encodeURIComponent(item)}`
+                                    : `/category/${group.slug}/${slugifySub(item)}${genderSuffix}`;
+                                  return (
+                                    <li key={item}>
                                       <Link
-                                        to={`/sale?sub=${encodeURIComponent(item)}`}
+                                        to={itemLink}
                                         onClick={() => setOpenMenu(null)}
-                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
+                                        className="block px-2 py-1.5 rounded-lg text-[13px] font-medium hover:bg-blush hover:text-primary transition-colors"
                                       >
                                         {item}
                                       </Link>
-                                    ) : (
-                                      <Link
-                                        to={`/category/${group.slug}/${slugifySub(item)}`}
-                                        onClick={() => setOpenMenu(null)}
-                                        className="block px-2 py-1.5 rounded-lg text-sm hover:bg-blush hover:text-primary transition-colors"
-                                      >
-                                        {item}
-                                      </Link>
-                                    )}
-                                  </li>
-                                ))}
+                                    </li>
+                                  );
+                                })}
                               </ul>
                             </div>
                           ))}
@@ -113,7 +113,7 @@ export function Header() {
 
             <Link
               to="/contact"
-              className={`px-4 py-2 text-[13px] font-medium tracking-wide hover:text-primary transition-colors ${isActive("/contact") ? "text-primary" : ""}`}
+              className={`px-4 py-2 text-[13.5px] font-semibold tracking-wide hover:text-primary transition-colors ${isActive("/contact") ? "text-primary" : ""}`}
             >
               Contact
             </Link>
@@ -174,7 +174,10 @@ export function Header() {
                   className="fixed top-0 right-0 bottom-0 w-[86%] max-w-sm bg-background z-[101] lg:hidden shadow-pillow flex flex-col"
                 >
                   <div className="flex items-center justify-between px-5 h-16 border-b border-border">
-                    <span className="font-display text-lg">Menu</span>
+                    <div className="flex items-center gap-2">
+                      <BrandLogo className="h-8 w-8 rounded-lg" />
+                      <span className="font-display text-lg font-semibold">Baby Fitters</span>
+                    </div>
                     <button
                       onClick={() => setMobile(false)}
                       className="w-10 h-10 rounded-full hover:bg-muted flex items-center justify-center"
@@ -184,10 +187,10 @@ export function Header() {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto py-3 px-3">
-                    <Link to="/" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold">Home</Link>
+                    <Link to="/" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold text-[15px]">Home</Link>
                     {NAV_GROUPS.map((group) => (
                       <details key={group.label} className="group">
-                        <summary className="px-3 py-3 rounded-xl hover:bg-muted font-semibold cursor-pointer flex items-center justify-between list-none">
+                        <summary className="px-3 py-3 rounded-xl hover:bg-muted font-semibold cursor-pointer flex items-center justify-between list-none text-[15px]">
                           <span className="flex items-center gap-2">
                             {group.slug === "sale" && <Tag className="w-4 h-4 text-primary" />}
                             {group.label}
@@ -198,34 +201,29 @@ export function Header() {
                           {group.columns.map((col, ci) => (
                             <div key={ci} className="mt-1">
                               {col.heading && <p className="px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{col.heading}</p>}
-                              {col.items.map((item) => (
-                                group.slug === "sale" ? (
+                              {col.items.map((item) => {
+                                const genderSuffix = col.gender ? `?gender=${col.gender}` : "";
+                                const itemLink = group.slug === "sale"
+                                  ? `/sale?sub=${encodeURIComponent(item)}`
+                                  : `/category/${group.slug}/${slugifySub(item)}${genderSuffix}`;
+                                return (
                                   <Link
                                     key={item}
-                                    to={`/sale?sub=${encodeURIComponent(item)}`}
+                                    to={itemLink}
                                     onClick={() => setMobile(false)}
-                                    className="block px-3 py-2 rounded-lg text-sm hover:bg-muted"
+                                    className="block px-3 py-2 rounded-lg text-[13.5px] font-medium hover:bg-muted"
                                   >
                                     {item}
                                   </Link>
-                                ) : (
-                                  <Link
-                                    key={item}
-                                    to={`/category/${group.slug}/${slugifySub(item)}`}
-                                    onClick={() => setMobile(false)}
-                                    className="block px-3 py-2 rounded-lg text-sm hover:bg-muted"
-                                  >
-                                    {item}
-                                  </Link>
-                                )
-                              ))}
+                                );
+                              })}
                             </div>
                           ))}
                         </div>
                       </details>
                     ))}
-                    <Link to="/contact" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold">Contact</Link>
-                    <Link to="/search" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold">Search</Link>
+                    <Link to="/contact" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold text-[15px]">Contact</Link>
+                    <Link to="/search" onClick={() => setMobile(false)} className="block px-3 py-3 rounded-xl hover:bg-muted font-semibold text-[15px]">Search</Link>
                   </div>
                 </motion.nav>
               </>

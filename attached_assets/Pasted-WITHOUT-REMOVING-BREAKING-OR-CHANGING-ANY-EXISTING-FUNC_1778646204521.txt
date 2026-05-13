@@ -1,0 +1,256 @@
+WITHOUT REMOVING, BREAKING, OR CHANGING ANY EXISTING FUNCTIONALITY, properly improve and fix the following issues across the entire BabyFitters website and Secret Portal/Admin Panel.
+
+━━━━━━━━━━━━━━━━━━━
+
+1. BOYS & GIRLS CATEGORY FILTERING FIX
+   ━━━━━━━━━━━━━━━━━━━
+
+This is the MOST IMPORTANT issue.
+
+Currently, Boys and Girls categories are not filtering properly.
+
+Example:
+
+* If I add a product inside Boys category and select “Boys”, then ONLY boys products should appear.
+* Right now both Boys and Girls products appear together, which is incorrect.
+
+Fix this properly for ALL categories and subcategories.
+
+Requirements:
+
+* Boys category → show ONLY boys products
+* Girls category → show ONLY girls products
+* Same filtering logic should apply to every category and subcategory
+* No mixed products
+* Correct database filtering
+* Correct category-based rendering
+* Correct routing and query handling
+
+━━━━━━━━━━━━━━━━━━━
+2. FONT SIZE & TYPOGRAPHY IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━
+
+Improve typography across the entire website.
+
+Requirements:
+
+* Increase overall font sizes
+* Use cleaner and bolder fonts
+* Make text more premium and readable
+* Product names and prices inside product grid must become:
+
+  * larger
+  * more bold
+  * more prominent
+
+Typography should feel:
+
+* Premium
+* Clean
+* Modern
+* Easy to read
+* Luxury ecommerce inspired
+
+Use font sizes that look balanced according to the website layout.
+
+━━━━━━━━━━━━━━━━━━━
+3. LARGE SCREEN RESPONSIVENESS FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently on very large screens the layout behaves incorrectly.
+
+Issue:
+
+* Everything becomes centered awkwardly
+* Alignment breaks
+* Layout loses proper left/right spacing
+
+Fix this properly.
+
+Requirements:
+
+* Maintain proper desktop-style alignment on ultra-wide screens
+* Keep proper left and right spacing
+* Keep content aligned naturally
+* Preserve grid structure properly
+* Maintain premium responsive layout
+* Do not over-center everything on large displays
+
+The layout should scale professionally on:
+
+* Large desktops
+* Ultra-wide monitors
+* Big screens
+
+━━━━━━━━━━━━━━━━━━━
+4. LOGO + BRAND TEXT IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━
+
+The logo should remain properly implemented.
+
+Additionally:
+
+* Add a minimal typed “Baby Fitters” text beside the logo
+* Keep it clean and premium
+* Proper spacing between logo and text
+* Modern typography
+* Minimal branding style
+
+Do NOT make it oversized or flashy.
+
+━━━━━━━━━━━━━━━━━━━
+5. HEADER IMAGE MANAGEMENT IN SECRET PORTAL
+━━━━━━━━━━━━━━━━━━━
+
+Just like category image replacement exists, add the SAME functionality for the homepage header image.
+
+Requirements:
+
+Inside Secret Portal/Admin Panel:
+
+* Allow replacing homepage header image anytime
+* Allow updating banner/header visuals dynamically
+* Proper preview system
+* Save changes properly
+* Frontend updates instantly
+
+━━━━━━━━━━━━━━━━━━━
+6. HEADER POPUP CUSTOMIZATION
+━━━━━━━━━━━━━━━━━━━
+
+Currently two popups appear at the top header section.
+
+Add proper customization options for these popups inside Secret Portal/Admin Panel.
+
+Requirements:
+
+* Change popup text
+* Change popup visibility
+* Edit popup content
+* Save changes dynamically
+* Changes reflect instantly on frontend
+
+━━━━━━━━━━━━━━━━━━━
+7. REMOVE “BROWSE TOYS” BUTTON
+━━━━━━━━━━━━━━━━━━━
+
+Remove the “Browse Toys” button from the homepage header section completely.
+
+No layout breaking should occur after removal.
+
+━━━━━━━━━━━━━━━━━━━
+8. CATEGORY CARD UI IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━
+
+Improve category section design.
+
+Requirements:
+
+* Category image should have rounded corners
+* Add soft dark/black overlay on image
+* Add subtle blue effect/glow
+* Category name should appear ON TOP of image
+* Do NOT place category title separately below image
+* Text should overlay beautifully on image
+* Proper typography and spacing required
+
+The category cards should feel:
+
+* Modern
+* Premium
+* Cinematic
+* Luxury ecommerce inspired
+
+━━━━━━━━━━━━━━━━━━━
+9. FOOTER CATEGORY FIX
+━━━━━━━━━━━━━━━━━━━
+
+Footer categories must EXACTLY match navbar categories.
+
+Currently incorrect/changed categories appear in footer.
+
+Fix this properly.
+
+Requirements:
+
+* Same categories in navbar and footer
+* Same structure
+* Same naming
+* Proper linking
+* No mismatched categories
+
+━━━━━━━━━━━━━━━━━━━
+10. PRODUCT SIZE CHART MANAGEMENT SYSTEM
+━━━━━━━━━━━━━━━━━━━
+
+Current size charts should remain as default.
+
+BUT:
+
+Inside Secret Portal/Admin Panel:
+
+* Create proper editable size chart table system
+* Default values should already exist
+* Admin should be able to edit values manually if needed
+
+Requirements:
+
+* Editable table UI
+* Proper save/update system
+* Product-specific size customization
+* Changes should reflect correctly on frontend
+* Responsive admin table design
+
+━━━━━━━━━━━━━━━━━━━
+11. AGE FILTER SYSTEM
+━━━━━━━━━━━━━━━━━━━
+
+Add age filtering similar to price range slider.
+
+Requirements:
+
+* Create age range filter bar
+* Start from months
+* After 12 months convert into years
+* Filtering should support:
+
+  * newborn
+  * months
+  * 1 year
+  * 2 years
+  * up to 10+ years
+
+Must work smoothly and dynamically.
+
+━━━━━━━━━━━━━━━━━━━
+12. DISCOUNT FILTER IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━
+
+Add proper discount filter slider/bar similar to price filter.
+
+Requirements:
+
+* Smooth UI
+* Proper discount range filtering
+* Dynamic product updates
+* Responsive design
+* Premium animation/transitions
+
+━━━━━━━━━━━━━━━━━━━
+13. SECRET PORTAL SUBCATEGORY DISPLAY FIX
+━━━━━━━━━━━━━━━━━━━
+
+Inside Secret Portal/Admin Panel:
+
+Subcategories should display properly just like categories.
+
+Requirements:
+
+* Proper subcategory listing
+* Proper hierarchy display
+* Better organization
+* Easy management UI
+* Correct category/subcategory relationships visible
+* Smooth responsive admin experience
+
+Everything must remain smooth, responsive, premium, and production-ready WITHOUT breaking any existing functionality.

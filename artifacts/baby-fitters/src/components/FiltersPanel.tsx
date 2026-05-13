@@ -1,23 +1,50 @@
 import { useState } from "react";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
-import { AGE_GROUPS, GENDERS, DISCOUNT_TIERS } from "@/lib/taxonomy";
+import { GENDERS } from "@/lib/taxonomy";
 import { formatPrice } from "@/lib/categories";
+import { defaultFilters, type FilterState } from "@/lib/filter-utils";
 
-export type FilterState = {
-  age: string[];
-  gender: string[];
-  discount: number[];
-  minPrice: number;
-  maxPrice: number;
-};
+const AGE_STOPS = [
+  { months: 0,   label: "0m" },
+  { months: 3,   label: "3m" },
+  { months: 6,   label: "6m" },
+  { months: 12,  label: "1yr" },
+  { months: 24,  label: "2yr" },
+  { months: 36,  label: "3yr" },
+  { months: 60,  label: "5yr" },
+  { months: 84,  label: "7yr" },
+  { months: 120, label: "10yr" },
+  { months: 168, label: "14yr+" },
+];
 
-export const defaultFilters: FilterState = {
-  age: [],
-  gender: [],
-  discount: [],
-  minPrice: 0,
-  maxPrice: 50000,
-};
+function monthsToLabel(m: number): string {
+  if (m < 12) return `${m}m`;
+  const y = Math.round(m / 12);
+  return `${y}yr`;
+}
+
+const AGE_VALUE_MAP = [0, 3, 6, 12, 24, 36, 60, 84, 120, 168];
+
+function sliderToMonths(v: number): number {
+  const clamped = Math.max(0, Math.min(v, AGE_VALUE_MAP.length - 1));
+  return AGE_VALUE_MAP[Math.round(clamped)] ?? 0;
+}
+
+function monthsToSlider(m: number): number {
+  const idx = AGE_VALUE_MAP.findIndex((x) => x >= m);
+  return idx >= 0 ? idx : AGE_VALUE_MAP.length - 1;
+}
+
+function ageGroupFromProduct(ageGroup: string | null): number | null {
+  if (!ageGroup) return null;
+  const map: Record<string, number> = {
+    "0-3m": 1.5, "3-6m": 4.5, "3-12m": 7, "6-12m": 9,
+    "1-2y": 18, "1-4y": 30, "2-3y": 30, "3-4y": 42,
+    "3-5y": 48, "4-5y": 54, "5-6y": 66, "5-10y": 90,
+    "7-8y": 90, "9-10y": 114, "10+": 132,
+  };
+  return map[ageGroup.toLowerCase().trim()] ?? null;
+}
 
 export function FiltersPanel({
   value,
@@ -29,54 +56,134 @@ export function FiltersPanel({
   priceBounds: { min: number; max: number };
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const toggle = <K extends "age" | "gender" | "discount">(key: K, item: FilterState[K][number]) => {
-    const arr = value[key] as Array<FilterState[K][number]>;
-    const next = arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
-    onChange({ ...value, [key]: next });
+
+  const toggleGender = (g: string) => {
+    const next = value.gender.includes(g)
+      ? value.gender.filter((x) => x !== g)
+      : [...value.gender, g];
+    onChange({ ...value, gender: next });
   };
 
   const activeCount =
-    value.age.length + value.gender.length + value.discount.length + (value.maxPrice < priceBounds.max ? 1 : 0);
+    value.gender.length +
+    (value.maxPrice < priceBounds.max ? 1 : 0) +
+    (value.minAge > 0 ? 1 : 0) +
+    (value.maxAge < 168 ? 1 : 0) +
+    (value.minDiscount > 0 ? 1 : 0);
+
+  const clearAll = () => onChange({ ...defaultFilters, maxPrice: priceBounds.max });
+
+  const minAgeSlider = monthsToSlider(value.minAge);
+  const maxAgeSlider = monthsToSlider(value.maxAge);
 
   const body = (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-xl">Filters</h3>
-        <button
-          onClick={() => onChange({ ...defaultFilters, maxPrice: priceBounds.max })}
-          className="text-xs text-muted-foreground hover:text-primary"
-        >
+        <h3 className="font-display text-xl font-semibold">Filters</h3>
+        <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-primary font-medium">
           Clear all
         </button>
       </div>
 
-      <FilterGroup title="Age / Size">
-        {AGE_GROUPS.map((a) => (
-          <Chip key={a.value} active={value.age.includes(a.value)} onClick={() => toggle("age", a.value)}>
-            {a.label}
-          </Chip>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Gender">
-        {GENDERS.map((g) => (
-          <Chip key={g.value} active={value.gender.includes(g.value)} onClick={() => toggle("gender", g.value)}>
-            {g.label}
-          </Chip>
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Discount">
-        {DISCOUNT_TIERS.map((d) => (
-          <Chip key={d} active={value.discount.includes(d)} onClick={() => toggle("discount", d)}>
-            {d}% +
-          </Chip>
-        ))}
-      </FilterGroup>
+      <div>
+        <p className="filter-label">Gender</p>
+        <div className="flex flex-wrap gap-2">
+          {GENDERS.map((g) => (
+            <Chip key={g.value} active={value.gender.includes(g.value)} onClick={() => toggleGender(g.value)}>
+              {g.label}
+            </Chip>
+          ))}
+        </div>
+      </div>
 
       <div>
-        <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-3">Price Range</p>
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+        <p className="filter-label">Age Range</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 font-medium">
+          <span>{monthsToLabel(value.minAge)}</span>
+          <span>{value.maxAge >= 168 ? "Any age" : monthsToLabel(value.maxAge)}</span>
+        </div>
+        <div className="relative h-5 flex items-center">
+          <div className="absolute inset-x-0 h-1.5 bg-muted rounded-full" />
+          <div
+            className="absolute h-1.5 bg-primary rounded-full"
+            style={{
+              left: `${(minAgeSlider / (AGE_VALUE_MAP.length - 1)) * 100}%`,
+              right: `${100 - (maxAgeSlider / (AGE_VALUE_MAP.length - 1)) * 100}%`,
+            }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={AGE_VALUE_MAP.length - 1}
+            step={1}
+            value={minAgeSlider}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (v < maxAgeSlider) onChange({ ...value, minAge: sliderToMonths(v) });
+            }}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
+            style={{ zIndex: minAgeSlider >= maxAgeSlider - 1 ? 5 : 3 }}
+          />
+          <input
+            type="range"
+            min={0}
+            max={AGE_VALUE_MAP.length - 1}
+            step={1}
+            value={maxAgeSlider}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (v > minAgeSlider) onChange({ ...value, maxAge: sliderToMonths(v) });
+            }}
+            className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
+            style={{ zIndex: 4 }}
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {AGE_STOPS.filter((_, i) => i % 2 === 0).map((s) => (
+            <button
+              key={s.months}
+              type="button"
+              onClick={() => onChange({ ...value, minAge: s.months, maxAge: Math.min(s.months + 24, 168) })}
+              className="px-2 py-1 rounded-full text-[10px] font-semibold border border-border hover:bg-blush hover:text-primary transition-colors"
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="filter-label">Min Discount</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 font-medium">
+          <span>{value.minDiscount === 0 ? "Any" : `${value.minDiscount}%+ off`}</span>
+          <span>70% off</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={70}
+          step={5}
+          value={value.minDiscount}
+          onChange={(e) => onChange({ ...value, minDiscount: Number(e.target.value) })}
+          className="w-full accent-[var(--color-primary)]"
+        />
+        <div className="flex justify-between mt-1">
+          {[0, 10, 25, 50, 70].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => onChange({ ...value, minDiscount: d })}
+              className={`text-[10px] font-semibold transition-colors ${value.minDiscount === d ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {d === 0 ? "Any" : `${d}%`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="filter-label">Price Range</p>
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 font-medium">
           <span>{formatPrice(value.minPrice)}</span>
           <span>{formatPrice(value.maxPrice)}</span>
         </div>
@@ -94,7 +201,6 @@ export function FiltersPanel({
 
   return (
     <>
-      {/* Mobile toggle bar */}
       <div className="lg:hidden sticky top-16 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/90 backdrop-blur-md border-b border-border">
         <button
           type="button"
@@ -115,21 +221,10 @@ export function FiltersPanel({
           </div>
         )}
       </div>
-
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:block bg-card border border-border rounded-3xl p-5 sticky top-24 self-start">
+      <aside className="hidden lg:block bg-card border border-border rounded-3xl p-6 sticky top-24 self-start">
         {body}
       </aside>
     </>
-  );
-}
-
-function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-2">{title}</p>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
   );
 }
 
@@ -138,7 +233,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     <button
       type="button"
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+      className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold border transition-colors ${
         active ? "bg-foreground text-background border-foreground" : "bg-background text-foreground border-border hover:bg-blush"
       }`}
     >
@@ -147,20 +242,3 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-type Filterable = {
-  price: number;
-  discount_percent: number;
-  gender: string | null;
-  age_group: string | null;
-};
-
-export function applyFilters<T extends Filterable>(items: T[], f: FilterState): T[] {
-  return items.filter((p) => {
-    if (f.age.length && (!p.age_group || !f.age.includes(p.age_group))) return false;
-    if (f.gender.length && (!p.gender || !f.gender.includes(p.gender))) return false;
-    if (f.discount.length && !f.discount.some((d) => (p.discount_percent ?? 0) >= d)) return false;
-    const finalP = p.price * (1 - (p.discount_percent ?? 0) / 100);
-    if (finalP < f.minPrice || finalP > f.maxPrice) return false;
-    return true;
-  });
-}

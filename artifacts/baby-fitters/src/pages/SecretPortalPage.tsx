@@ -1,14 +1,21 @@
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
 import { fetchProducts, type Product, type ProductVariant } from "@/lib/products";
-import { subcategoriesFor, SIZE_PRESETS, COLOR_PRESETS, BABY_SIZES } from "@/lib/taxonomy";
+import { subcategoriesFor, subcategoriesByGender, SIZE_PRESETS, COLOR_PRESETS, BABY_SIZES } from "@/lib/taxonomy";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/BrandLogo";
 import { CategoryImagesManager } from "@/components/CategoryImagesManager";
+import {
+  getHeroImage, setHeroImage, resetHeroImage,
+  getPopupConfig, setPopupConfig,
+  getSizeChart, saveSizeChart,
+  DEFAULT_SIZE_CHART, DEFAULT_POPUP_1, DEFAULT_POPUP_2,
+  type PopupConfig, type SizeChartRow,
+} from "@/lib/site-settings";
 
 const ADMIN_ACCESS_CODE = "babyfitters2026";
 const AUTH_KEY = "baby-fitters-admin-auth";
@@ -59,7 +66,7 @@ function PasscodeGate({ onSuccess }: { onSuccess: () => void }) {
           <h1 className="font-display text-2xl flex items-center justify-center gap-2">
             <Lock className="w-5 h-5" /> Restricted Access
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Enter your admin access code to continue.</p>
+          <p className="text-[14px] text-muted-foreground mt-1">Enter your admin access code to continue.</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -68,13 +75,13 @@ function PasscodeGate({ onSuccess }: { onSuccess: () => void }) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Access code"
-            className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest"
+            className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-center tracking-widest text-[15px]"
           />
           {error && <p className="text-sm text-destructive text-center">{error}</p>}
           <button
             type="submit"
             disabled={loading || !code}
-            className="w-full py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-full bg-foreground text-background font-bold text-[15px] hover:bg-primary transition-colors disabled:opacity-50"
           >
             {loading ? "Verifying..." : "Unlock"}
           </button>
@@ -123,6 +130,7 @@ const emptyForm: FormState = {
 };
 
 const MAX_IMAGES = 6;
+type AdminTab = "products" | "images" | "hero" | "popups" | "sizechart";
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -130,6 +138,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>("products");
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
@@ -146,7 +155,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
     const remaining = MAX_IMAGES - form.images.length;
-    if (remaining <= 0) { toast.error(`You can upload at most ${MAX_IMAGES} images`); return; }
+    if (remaining <= 0) { toast.error(`Max ${MAX_IMAGES} images`); return; }
     const toUpload = files.slice(0, remaining);
     setUploading(true);
     try {
@@ -253,259 +262,561 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       variants: p.variants ?? [],
     });
     setShowForm(true);
+    setActiveTab("products");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
+    { id: "products",  label: "Products",       icon: <Plus className="w-4 h-4" /> },
+    { id: "images",    label: "Category Images", icon: <ImageIcon className="w-4 h-4" /> },
+    { id: "hero",      label: "Hero Image",      icon: <ImageIcon className="w-4 h-4" /> },
+    { id: "popups",    label: "Hero Popups",     icon: <MessageSquare className="w-4 h-4" /> },
+    { id: "sizechart", label: "Size Chart",      icon: <Table2 className="w-4 h-4" /> },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-background/80 border-b border-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="site-container h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BrandLogo className="w-10 h-10 ring-1 ring-border" />
+            <BrandLogo className="w-10 h-10 ring-1 ring-border rounded-xl" />
             <div>
-              <p className="font-display font-semibold leading-none">Admin Portal</p>
+              <p className="font-display font-semibold leading-none text-[16px]">Admin Portal</p>
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">Baby Fitters</p>
             </div>
           </div>
-          <button
-            onClick={onLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors"
-          >
-            <LogOut className="w-4 h-4" /> Sign out
-          </button>
+          <div className="flex items-center gap-3">
+            <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block">
+              View Store →
+            </Link>
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors"
+            >
+              <LogOut className="w-4 h-4" /> Sign out
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
-          <div>
-            <p className="text-sm uppercase tracking-widest text-muted-foreground font-semibold">Dashboard</p>
-            <h1 className="font-display text-4xl sm:text-5xl mt-2">Manage products</h1>
-            <p className="text-muted-foreground mt-2">{products?.length ?? "..."} products in catalog</p>
-          </div>
-          <button
-            onClick={() => { setForm(emptyForm); setShowForm((v) => !v); }}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors shadow-pillow"
-          >
-            {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add product</>}
-          </button>
+      <div className="site-container py-8">
+        <div className="mb-8">
+          <p className="eyebrow">Dashboard</p>
+          <h1 className="font-display text-4xl sm:text-5xl mt-2">Admin Panel</h1>
+          <p className="text-muted-foreground mt-2 text-[15px]">{products?.length ?? "..."} products in catalog</p>
         </div>
 
-        <CategoryImagesManager />
+        <div className="flex gap-2 flex-wrap mb-8 border-b border-border pb-4">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${activeTab === t.id ? "bg-foreground text-background" : "bg-muted hover:bg-blush"}`}
+            >
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
 
-        {showForm && (
-          <form onSubmit={handleSubmit} className="bg-card rounded-3xl border border-border p-6 md:p-8 mb-10 shadow-soft">
-            <h2 className="font-display text-2xl mb-6">{form.id ? "Edit product" : "New product"}</h2>
-            <div className="grid md:grid-cols-2 gap-5">
-              <Field label="Product name">
-                <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Soft Cotton Onesie" />
-              </Field>
-              <Field label="Price (PKR)">
-                <input required type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input" placeholder="1500" />
-              </Field>
-              <Field label="Category">
-                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug, subcategory: "" })} className="input">
-                  {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
-                </select>
-              </Field>
-              <Field label="Subcategory">
-                <select value={form.subcategory} onChange={(e) => setForm({ ...form, subcategory: e.target.value })} className="input">
-                  <option value="">— None —</option>
-                  {subcategoriesFor(form.category).map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </Field>
-              <div className="md:col-span-2">
-                <Field label={`Images (up to ${MAX_IMAGES})`}>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors ${form.images.length >= MAX_IMAGES ? "opacity-50 pointer-events-none" : ""}`}>
-                        <Upload className="w-4 h-4" />
-                        {uploading ? "Uploading..." : `Upload images (${form.images.length}/${MAX_IMAGES})`}
-                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading || form.images.length >= MAX_IMAGES} />
-                      </label>
-                      <p className="text-xs text-muted-foreground">First image is used as the cover.</p>
-                    </div>
-                    {form.images.length > 0 && (
-                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                        {form.images.map((src, i) => (
-                          <div key={src + i} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
-                            <img src={src} alt={`product ${i + 1}`} className="w-full h-full object-cover" />
-                            {i === 0 && <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-foreground text-background text-[9px] font-bold uppercase tracking-wider">Cover</span>}
-                            <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/90 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Remove">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Field>
-              </div>
-              <Field label="Discount %">
-                <input type="number" min="0" max="100" value={form.discount_percent} onChange={(e) => setForm({ ...form, discount_percent: e.target.value })} className="input" placeholder="0" />
-              </Field>
-              <Field label="Gender">
-                <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="input">
-                  <option value="">—</option>
-                  <option value="boys">Boys</option>
-                  <option value="girls">Girls</option>
-                  <option value="newborn">New Born</option>
-                </select>
-              </Field>
-              <Field label="Age / Size">
-                <select value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })} className="input">
-                  <option value="">—</option>
-                  <option value="0-3m">0–3 Months</option>
-                  <option value="3-12m">3–12 Months</option>
-                  <option value="1-4y">1–4 Years</option>
-                  <option value="5-10y">5–10 Years</option>
-                  <option value="10+">10+ Above</option>
-                </select>
-              </Field>
-              <div className="md:col-span-2">
-                <Field label="Description">
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-24" placeholder="Soft, breathable cotton perfect for sensitive skin..." />
-                </Field>
-              </div>
-              <div className="md:col-span-2">
-                <Field label="Available sizes (multi-select)">
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Tick every size this product is available in.</p>
-                    <div className="flex flex-wrap gap-2">
-                      {BABY_SIZES.map((s) => {
-                        const sizesVariant = form.variants.find((v) => Array.isArray(v.sizes));
-                        const active = !!sizesVariant?.sizes?.includes(s);
+        {activeTab === "products" && (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display text-2xl">Manage Products</h2>
+              <button
+                onClick={() => { setForm(emptyForm); setShowForm((v) => !v); }}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors shadow-pillow"
+              >
+                {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add product</>}
+              </button>
+            </div>
+
+            {showForm && (
+              <form onSubmit={handleSubmit} className="bg-card rounded-3xl border border-border p-6 md:p-8 mb-10 shadow-soft">
+                <h2 className="font-display text-2xl mb-6">{form.id ? "Edit product" : "New product"}</h2>
+                <div className="grid md:grid-cols-2 gap-5">
+                  <Field label="Product name">
+                    <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Soft Cotton Onesie" />
+                  </Field>
+                  <Field label="Price (PKR)">
+                    <input required type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="input" placeholder="1500" />
+                  </Field>
+                  <Field label="Category">
+                    <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as CategorySlug, subcategory: "", gender: "" })} className="input">
+                      {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Gender">
+                    <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value, subcategory: "" })} className="input">
+                      <option value="">— Any —</option>
+                      <option value="boys">Boys</option>
+                      <option value="girls">Girls</option>
+                      <option value="newborn">New Born</option>
+                    </select>
+                  </Field>
+                  <Field label="Subcategory">
+                    <select value={form.subcategory} onChange={(e) => setForm({ ...form, subcategory: e.target.value })} className="input">
+                      <option value="">— None —</option>
+                      {subcategoriesByGender(form.category).map((group) => {
+                        if (form.gender && group.gender && group.gender !== form.gender) return null;
                         return (
-                          <button key={s} type="button"
-                            onClick={() => {
-                              setForm((f) => {
-                                const idx = f.variants.findIndex((v) => Array.isArray(v.sizes));
-                                const current = idx >= 0 ? (f.variants[idx].sizes ?? []) : [];
-                                const next = current.includes(s) ? current.filter((x) => x !== s) : [...current, s];
-                                let variants = [...f.variants];
-                                if (idx >= 0) {
-                                  if (next.length === 0) variants.splice(idx, 1);
-                                  else variants[idx] = { ...variants[idx], sizes: next };
-                                } else if (next.length) {
-                                  variants = [{ label: "Size", sizes: next }, ...variants];
-                                }
-                                return { ...f, variants };
-                              });
-                            }}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${active ? "bg-foreground text-background border-foreground shadow-soft" : "bg-background border-border hover:bg-blush"}`}
-                          >
-                            {s}
-                          </button>
+                          <optgroup key={group.label} label={group.label}>
+                            {group.items.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </optgroup>
                         );
                       })}
-                    </div>
-                  </div>
-                </Field>
-              </div>
-              <div className="md:col-span-2">
-                <Field label="Variants">
-                  <div className="space-y-2">
-                    {form.variants.map((v, i) => (
-                      <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
-                        <input value={v.label ?? ""} onChange={(e) => updateVariant(i, { label: e.target.value })} className="input" placeholder="Attribute" />
-                        <input value={v.size ?? ""} onChange={(e) => updateVariant(i, { size: e.target.value })} className="input" placeholder="Size" list={`size-presets-${i}`} />
-                        <datalist id={`size-presets-${i}`}>{SIZE_PRESETS.map((s) => <option key={s} value={s} />)}</datalist>
-                        <input value={v.color ?? ""} onChange={(e) => { const preset = COLOR_PRESETS.find((c) => c.name.toLowerCase() === e.target.value.toLowerCase()); updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" }); }} className="input" placeholder="Color name" list={`color-presets-${i}`} />
-                        <datalist id={`color-presets-${i}`}>{COLOR_PRESETS.map((c) => <option key={c.name} value={c.name} />)}</datalist>
-                        <input type="color" value={v.colorHex || "#ffffff"} onChange={(e) => updateVariant(i, { colorHex: e.target.value })} className="h-10 w-12 rounded-xl border border-border bg-background cursor-pointer" />
-                        <button type="button" onClick={() => removeVariant(i)} className="w-10 h-10 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center" aria-label="Remove"><Trash2 className="w-4 h-4" /></button>
+                    </select>
+                  </Field>
+                  <Field label="Age / Size">
+                    <select value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })} className="input">
+                      <option value="">—</option>
+                      <option value="0-3m">0–3 Months</option>
+                      <option value="3-6m">3–12 Months</option>
+                      <option value="6-12m">6–12 Months</option>
+                      <option value="1-2y">1–2 Years</option>
+                      <option value="2-3y">2–3 Years</option>
+                      <option value="3-5y">3–5 Years</option>
+                      <option value="5-10y">5–10 Years</option>
+                      <option value="10+">10+ Above</option>
+                    </select>
+                  </Field>
+                  <div className="md:col-span-2">
+                    <Field label={`Images (up to ${MAX_IMAGES})`}>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-muted hover:bg-blush cursor-pointer text-sm font-semibold transition-colors ${form.images.length >= MAX_IMAGES ? "opacity-50 pointer-events-none" : ""}`}>
+                            <Upload className="w-4 h-4" />
+                            {uploading ? "Uploading..." : `Upload (${form.images.length}/${MAX_IMAGES})`}
+                            <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading || form.images.length >= MAX_IMAGES} />
+                          </label>
+                          <p className="text-xs text-muted-foreground">First image is the cover.</p>
+                        </div>
+                        {form.images.length > 0 && (
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            {form.images.map((src, i) => (
+                              <div key={src + i} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
+                                <img src={src} alt={`product ${i + 1}`} className="w-full h-full object-cover" />
+                                {i === 0 && <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-foreground text-background text-[9px] font-bold uppercase tracking-wider">Cover</span>}
+                                <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/90 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    <button type="button" onClick={addVariant} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors">
-                      <Plus className="w-4 h-4" /> Add variant
-                    </button>
+                    </Field>
                   </div>
-                </Field>
+                  <Field label="Discount %">
+                    <input type="number" min="0" max="100" value={form.discount_percent} onChange={(e) => setForm({ ...form, discount_percent: e.target.value })} className="input" placeholder="0" />
+                  </Field>
+                  <div className="md:col-span-2">
+                    <Field label="Description">
+                      <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input min-h-24" placeholder="Soft, breathable cotton..." />
+                    </Field>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Field label="Available sizes">
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {BABY_SIZES.map((s) => {
+                          const sizesVariant = form.variants.find((v) => Array.isArray(v.sizes));
+                          const active = !!sizesVariant?.sizes?.includes(s);
+                          return (
+                            <button key={s} type="button"
+                              onClick={() => {
+                                setForm((f) => {
+                                  const idx = f.variants.findIndex((v) => Array.isArray(v.sizes));
+                                  const current = idx >= 0 ? (f.variants[idx].sizes ?? []) : [];
+                                  const next = current.includes(s) ? current.filter((x) => x !== s) : [...current, s];
+                                  let variants = [...f.variants];
+                                  if (idx >= 0) {
+                                    if (next.length === 0) variants.splice(idx, 1);
+                                    else variants[idx] = { ...variants[idx], sizes: next };
+                                  } else if (next.length) {
+                                    variants = [{ label: "Size", sizes: next }, ...variants];
+                                  }
+                                  return { ...f, variants };
+                                });
+                              }}
+                              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${active ? "bg-foreground text-background border-foreground shadow-soft" : "bg-background border-border hover:bg-blush"}`}
+                            >
+                              {s}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </Field>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Field label="Variants">
+                      <div className="space-y-2">
+                        {form.variants.map((v, i) => (
+                          <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 items-center bg-background border border-border rounded-2xl p-2">
+                            <input value={v.label ?? ""} onChange={(e) => updateVariant(i, { label: e.target.value })} className="input" placeholder="Attribute" />
+                            <input value={v.size ?? ""} onChange={(e) => updateVariant(i, { size: e.target.value })} className="input" placeholder="Size" list={`size-presets-${i}`} />
+                            <datalist id={`size-presets-${i}`}>{SIZE_PRESETS.map((s) => <option key={s} value={s} />)}</datalist>
+                            <input value={v.color ?? ""} onChange={(e) => { const preset = COLOR_PRESETS.find((c) => c.name.toLowerCase() === e.target.value.toLowerCase()); updateVariant(i, { color: e.target.value, colorHex: preset?.hex ?? v.colorHex ?? "" }); }} className="input" placeholder="Color" list={`color-presets-${i}`} />
+                            <datalist id={`color-presets-${i}`}>{COLOR_PRESETS.map((c) => <option key={c.name} value={c.name} />)}</datalist>
+                            <input type="color" value={v.colorHex || "#ffffff"} onChange={(e) => updateVariant(i, { colorHex: e.target.value })} className="h-10 w-12 rounded-xl border border-border bg-background cursor-pointer" />
+                            <button type="button" onClick={() => removeVariant(i)} className="w-10 h-10 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={addVariant} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors">
+                          <Plus className="w-4 h-4" /> Add variant
+                        </button>
+                      </div>
+                    </Field>
+                  </div>
+                  <div className="md:col-span-2 flex flex-wrap gap-4">
+                    <Toggle label="Featured" checked={form.is_featured} onChange={(v) => setForm({ ...form, is_featured: v })} />
+                    <Toggle label="New arrival" checked={form.is_new_arrival} onChange={(v) => setForm({ ...form, is_new_arrival: v })} />
+                    <Toggle label="Best seller" checked={form.is_best_seller} onChange={(v) => setForm({ ...form, is_best_seller: v })} />
+                  </div>
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <button type="submit" disabled={saving} className="px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50">
+                    {saving ? "Saving..." : form.id ? "Update product" : "Add product"}
+                  </button>
+                  <button type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }} className="px-6 py-3 rounded-full bg-muted font-semibold hover:bg-blush transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {products === null ? (
+              <p className="text-muted-foreground">Loading...</p>
+            ) : products.length === 0 ? (
+              <div className="text-center py-20 bg-card rounded-3xl border border-border">
+                <h2 className="font-display text-2xl">No products yet</h2>
+                <p className="text-muted-foreground mt-2">Click "Add product" to get started.</p>
               </div>
-              <div className="md:col-span-2 flex flex-wrap gap-4">
-                <Toggle label="Featured" checked={form.is_featured} onChange={(v) => setForm({ ...form, is_featured: v })} />
-                <Toggle label="New arrival" checked={form.is_new_arrival} onChange={(v) => setForm({ ...form, is_new_arrival: v })} />
-                <Toggle label="Best seller" checked={form.is_best_seller} onChange={(v) => setForm({ ...form, is_best_seller: v })} />
+            ) : (
+              <div className="bg-card rounded-3xl border border-border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted">
+                      <tr className="text-left">
+                        <th className="px-4 py-3 font-bold">Product</th>
+                        <th className="px-4 py-3 font-bold">Category</th>
+                        <th className="px-4 py-3 font-bold">Subcategory</th>
+                        <th className="px-4 py-3 font-bold">Gender</th>
+                        <th className="px-4 py-3 font-bold">Price</th>
+                        <th className="px-4 py-3 font-bold">Tags</th>
+                        <th className="px-4 py-3 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((p) => (
+                        <tr key={p.id} className="border-t border-border hover:bg-muted/40 transition-colors">
+                          <td className="px-4 py-3">
+                            <Link to={`/product/${p.id}`} className="flex items-center gap-3 hover:text-primary">
+                              <div className="w-12 h-12 rounded-xl bg-blush overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <BrandLogo className="w-9 h-9" />}
+                              </div>
+                              <span className="font-semibold">{p.name}</span>
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{categoryLabel(p.category)}</td>
+                          <td className="px-4 py-3">
+                            {p.subcategory ? (
+                              <span className="text-foreground font-medium">{p.subcategory}</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {p.gender ? (
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.gender === "boys" ? "bg-sky text-blue-800" : p.gender === "girls" ? "bg-blush text-pink-800" : "bg-mint text-green-800"}`}>
+                                {p.gender}
+                              </span>
+                            ) : <span className="text-muted-foreground">—</span>}
+                          </td>
+                          <td className="px-4 py-3 font-bold">{formatPrice(p.price)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {p.is_featured && <PTag>Featured</PTag>}
+                              {p.is_new_arrival && <PTag>New</PTag>}
+                              {p.is_best_seller && <PTag>Best</PTag>}
+                              {(p.discount_percent ?? 0) > 0 && <PTag>{p.discount_percent}% off</PTag>}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="inline-flex gap-1">
+                              <button onClick={() => handleEdit(p)} className="w-8 h-8 rounded-full hover:bg-blush flex items-center justify-center" aria-label="Edit"><Pencil className="w-4 h-4" /></button>
+                              <button onClick={() => handleDelete(p.id)} className="w-8 h-8 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center" aria-label="Delete"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button type="submit" disabled={saving} className="px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50">
-                {saving ? "Saving..." : form.id ? "Update product" : "Add product"}
-              </button>
-              <button type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }} className="px-6 py-3 rounded-full bg-muted font-semibold hover:bg-blush transition-colors">
-                Cancel
-              </button>
-            </div>
-          </form>
+            )}
+          </>
         )}
 
-        {products === null ? (
-          <p className="text-muted-foreground">Loading...</p>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 bg-card rounded-3xl border border-border">
-            <h2 className="font-display text-2xl">No products yet</h2>
-            <p className="text-muted-foreground mt-2">Click "Add product" to create your first one.</p>
-          </div>
-        ) : (
-          <div className="bg-card rounded-3xl border border-border overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted">
-                  <tr className="text-left">
-                    <th className="px-4 py-3 font-semibold">Product</th>
-                    <th className="px-4 py-3 font-semibold">Category</th>
-                    <th className="px-4 py-3 font-semibold">Price</th>
-                    <th className="px-4 py-3 font-semibold">Tags</th>
-                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((p) => (
-                    <tr key={p.id} className="border-t border-border hover:bg-muted/40 transition-colors">
-                      <td className="px-4 py-3">
-                        <Link to={`/product/${p.id}`} className="flex items-center gap-3 hover:text-primary">
-                          <div className="w-12 h-12 rounded-xl bg-blush overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <BrandLogo className="w-9 h-9" />}
-                          </div>
-                          <span className="font-semibold">{p.name}</span>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{categoryLabel(p.category)}</td>
-                      <td className="px-4 py-3 font-semibold">{formatPrice(p.price)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {p.is_featured && <Tag>Featured</Tag>}
-                          {p.is_new_arrival && <Tag>New</Tag>}
-                          {p.is_best_seller && <Tag>Best</Tag>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex gap-1">
-                          <button onClick={() => handleEdit(p)} className="w-8 h-8 rounded-full hover:bg-blush flex items-center justify-center" aria-label="Edit"><Pencil className="w-4 h-4" /></button>
-                          <button onClick={() => handleDelete(p.id)} className="w-8 h-8 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center" aria-label="Delete"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {activeTab === "images" && <CategoryImagesManager />}
+        {activeTab === "hero" && <HeroImageManager />}
+        {activeTab === "popups" && <PopupsManager />}
+        {activeTab === "sizechart" && <SizeChartManager />}
+      </div>
+    </div>
+  );
+}
+
+function HeroImageManager() {
+  const [current, setCurrent] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { getHeroImage().then(setCurrent); }, []);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `hero/hero-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("product-images").upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      await setHeroImage(data.publicUrl);
+      setCurrent(data.publicUrl);
+      toast.success("Hero image updated — live on homepage!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleReset() {
+    if (!confirm("Reset to default hero image?")) return;
+    setBusy(true);
+    try {
+      await resetHeroImage();
+      setCurrent(null);
+      toast.success("Reverted to default hero image");
+    } catch (err) {
+      toast.error("Reset failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-soft">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-full bg-sky flex items-center justify-center"><ImageIcon className="w-4 h-4" /></div>
+        <div>
+          <h2 className="font-display text-2xl">Homepage Hero Image</h2>
+          <p className="text-sm text-muted-foreground">Replace the main banner image shown on the homepage.</p>
+        </div>
+      </div>
+      <div className="max-w-xl space-y-4">
+        <div className="rounded-2xl overflow-hidden border border-border aspect-video bg-muted relative">
+          {current ? (
+            <>
+              <img src={current} alt="Hero" className="w-full h-full object-cover" />
+              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-foreground text-background text-[10px] font-bold uppercase tracking-wider">Custom</span>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+              Default image is active
             </div>
-          </div>
-        )}
+          )}
+        </div>
+        <div className="flex gap-3">
+          <label className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background font-semibold text-sm cursor-pointer hover:bg-primary transition-colors ${busy ? "opacity-60 pointer-events-none" : ""}`}>
+            <Upload className="w-4 h-4" />
+            {busy ? "Uploading..." : "Replace hero image"}
+            <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={handleUpload} />
+          </label>
+          {current && (
+            <button onClick={handleReset} disabled={busy} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground font-semibold text-sm transition-colors">
+              <RotateCcw className="w-4 h-4" /> Reset
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">Recommended: 1536×1152px, JPG or WebP. Changes take effect instantly.</p>
+      </div>
+    </section>
+  );
+}
+
+function PopupsManager() {
+  const [p1, setP1] = useState<PopupConfig>({ ...DEFAULT_POPUP_1 });
+  const [p2, setP2] = useState<PopupConfig>({ ...DEFAULT_POPUP_2 });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getPopupConfig(1).then(setP1);
+    getPopupConfig(2).then(setP2);
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await setPopupConfig(1, p1);
+      await setPopupConfig(2, p2);
+      toast.success("Popup settings saved — live on homepage!");
+    } catch (err) {
+      toast.error("Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-soft">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-full bg-butter flex items-center justify-center"><MessageSquare className="w-4 h-4" /></div>
+        <div>
+          <h2 className="font-display text-2xl">Hero Popup Cards</h2>
+          <p className="text-sm text-muted-foreground">Edit the two floating cards shown on the homepage hero section.</p>
+        </div>
       </div>
 
-      <style>{`
-        .input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.875rem; background: var(--color-background); border: 1px solid var(--color-border); font-size: 0.95rem; font-family: inherit; color: var(--color-foreground); }
-        .input:focus { outline: none; box-shadow: 0 0 0 2px var(--color-ring); }
-      `}</style>
-    </div>
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        {([{ cfg: p1, set: setP1, label: "Popup 1 (top-left)" }, { cfg: p2, set: setP2, label: "Popup 2 (bottom-right)" }] as const).map(({ cfg, set, label }, idx) => (
+          <div key={idx} className="bg-background rounded-2xl border border-border p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-[15px]">{label}</h3>
+              <Toggle label="Visible" checked={cfg.visible} onChange={(v) => set({ ...cfg, visible: v })} />
+            </div>
+            <Field label="Line 1 (small text)">
+              <input value={cfg.line1} onChange={(e) => set({ ...cfg, line1: e.target.value })} className="input" placeholder="Loved by parents" />
+            </Field>
+            <Field label="Line 2 (bold text)">
+              <input value={cfg.line2} onChange={(e) => set({ ...cfg, line2: e.target.value })} className="input" placeholder="4.9/5 rating" />
+            </Field>
+            <div className="bg-muted rounded-xl p-3 text-sm">
+              <p className="text-xs text-muted-foreground mb-1">Preview:</p>
+              {cfg.visible ? (
+                <div>
+                  <p className="text-xs text-muted-foreground">{cfg.line1 || "–"}</p>
+                  <p className="font-bold text-sm">{cfg.line2 || "–"}</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground italic">Hidden</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={handleSave} disabled={saving} className="px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50">
+        {saving ? "Saving..." : "Save popup settings"}
+      </button>
+    </section>
+  );
+}
+
+function SizeChartManager() {
+  const [rows, setRows] = useState<SizeChartRow[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    getSizeChart().then((r) => { setRows(r); setLoaded(true); });
+  }, []);
+
+  function updateRow(idx: number, field: keyof SizeChartRow, val: string) {
+    setRows((prev) => prev.map((r, i) => i === idx ? { ...r, [field]: val } : r));
+  }
+  function addRow() {
+    setRows((prev) => [...prev, { size: "", chest: "", length: "", weight: "" }]);
+  }
+  function removeRow(idx: number) {
+    setRows((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await saveSizeChart(rows);
+      toast.success("Size chart saved!");
+    } catch {
+      toast.error("Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReset() {
+    if (!confirm("Reset to default size chart?")) return;
+    setRows(DEFAULT_SIZE_CHART.map((r) => ({ ...r })));
+    toast.info("Reset to defaults — click Save to apply");
+  }
+
+  if (!loaded) return <p className="text-muted-foreground p-4">Loading...</p>;
+
+  return (
+    <section className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-soft">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-9 h-9 rounded-full bg-mint flex items-center justify-center"><Table2 className="w-4 h-4" /></div>
+        <div>
+          <h2 className="font-display text-2xl">Size Chart Editor</h2>
+          <p className="text-sm text-muted-foreground">Edit the size chart shown to customers in the footer size guide.</p>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-border mb-4">
+        <table className="w-full text-sm">
+          <thead className="bg-muted">
+            <tr className="text-left">
+              <th className="px-3 py-3 font-bold">Size</th>
+              <th className="px-3 py-3 font-bold">Chest</th>
+              <th className="px-3 py-3 font-bold">Length</th>
+              <th className="px-3 py-3 font-bold">Weight</th>
+              <th className="px-3 py-3 font-bold w-10"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className="border-t border-border">
+                {(["size", "chest", "length", "weight"] as const).map((field) => (
+                  <td key={field} className="px-2 py-2">
+                    <input
+                      value={row[field]}
+                      onChange={(e) => updateRow(i, field, e.target.value)}
+                      className="input text-sm py-1.5 px-2 rounded-lg"
+                      placeholder={field}
+                    />
+                  </td>
+                ))}
+                <td className="px-2 py-2">
+                  <button type="button" onClick={() => removeRow(i)} className="w-8 h-8 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="button" onClick={addRow} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-muted hover:bg-blush text-sm font-semibold transition-colors">
+          <Plus className="w-4 h-4" /> Add row
+        </button>
+        <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-full bg-foreground text-background font-semibold text-sm hover:bg-primary transition-colors disabled:opacity-50">
+          {saving ? "Saving..." : "Save chart"}
+        </button>
+        <button onClick={handleReset} className="px-5 py-2 rounded-full bg-muted hover:bg-blush font-semibold text-sm transition-colors inline-flex items-center gap-1.5">
+          <RotateCcw className="w-4 h-4" /> Reset defaults
+        </button>
+      </div>
+    </section>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-sm font-semibold mb-1.5">{label}</span>
+      <span className="block text-[13px] font-bold mb-1.5 uppercase tracking-wide text-muted-foreground">{label}</span>
       {children}
     </label>
   );
@@ -522,6 +833,6 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   );
 }
 
-function Tag({ children }: { children: React.ReactNode }) {
+function PTag({ children }: { children: React.ReactNode }) {
   return <span className="px-2 py-0.5 rounded-full bg-blush text-[10px] font-bold uppercase tracking-wider">{children}</span>;
 }
