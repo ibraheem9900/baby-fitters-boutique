@@ -16,15 +16,27 @@ export const defaultFilters: FilterState = {
   minDiscount: 0,
 };
 
-function ageGroupToMonths(ageGroup: string | null): number | null {
+function ageGroupToRange(ageGroup: string | null): [number, number] | null {
   if (!ageGroup) return null;
-  const map: Record<string, number> = {
-    "0-3m": 1.5,   "3-6m": 4.5,   "3-12m": 7,    "6-12m": 9,
-    "1-2y": 18,    "1-4y": 30,    "2-3y": 30,    "3-4y": 42,
-    "3-5y": 48,    "4-5y": 54,    "5-6y": 66,    "5-10y": 90,
-    "7-8y": 90,    "9-10y": 114,  "10+": 132,
+  const s = ageGroup.toLowerCase().trim();
+  const map: Record<string, [number, number]> = {
+    "0-3m":  [0,   3],
+    "3-6m":  [3,   6],
+    "3-12m": [3,   12],
+    "6-12m": [6,   12],
+    "1-2y":  [12,  24],
+    "1-4y":  [12,  48],
+    "2-3y":  [24,  36],
+    "3-4y":  [36,  48],
+    "3-5y":  [36,  60],
+    "4-5y":  [48,  60],
+    "5-6y":  [60,  72],
+    "5-10y": [60,  120],
+    "7-8y":  [84,  96],
+    "9-10y": [108, 120],
+    "10+":   [120, 168],
   };
-  return map[ageGroup.toLowerCase().trim()] ?? null;
+  return map[s] ?? null;
 }
 
 type Filterable = {
@@ -38,10 +50,14 @@ export function applyFilters<T extends Filterable>(items: T[], f: FilterState): 
   return items.filter((p) => {
     if (f.gender.length && (!p.gender || !f.gender.includes(p.gender))) return false;
     if (f.minDiscount > 0 && (p.discount_percent ?? 0) < f.minDiscount) return false;
-    const ageMonths = ageGroupToMonths(p.age_group);
-    if ((f.minAge > 0 || f.maxAge < 168) && ageMonths !== null) {
-      if (ageMonths < f.minAge || ageMonths > f.maxAge) return false;
+
+    if (f.minAge > 0 || f.maxAge < 168) {
+      const ageRange = ageGroupToRange(p.age_group);
+      if (ageRange !== null) {
+        if (ageRange[1] <= f.minAge || ageRange[0] >= f.maxAge) return false;
+      }
     }
+
     const finalP = p.price * (1 - (p.discount_percent ?? 0) / 100);
     if (finalP < f.minPrice || finalP > f.maxPrice) return false;
     return true;

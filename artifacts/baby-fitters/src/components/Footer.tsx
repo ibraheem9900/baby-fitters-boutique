@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useState } from "react";
-import { Instagram, Facebook, Twitter, Mail, Phone } from "lucide-react";
+import { Instagram, Mail, Phone } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { SizeChartModal } from "./SizeChartModal";
 import { WHATSAPP_DISPLAY, SUPPORT_EMAIL, WHATSAPP_NUMBER } from "@/lib/whatsapp";
@@ -18,7 +18,7 @@ export function Footer() {
             <span className="font-display text-xl font-medium">Baby Fitters</span>
           </div>
           <p className="text-muted-foreground max-w-md leading-relaxed text-[15px]">
-            Thoughtfully curated baby essentials — soft fabrics, gentle care, and toys that spark joy. Made for the
+            Thoughtfully curated baby essentials — soft fabrics, gentle care, and beautiful designs. Made for the
             tiniest humans, designed for the parents who love them.
           </p>
           <ul className="mt-6 space-y-2 text-sm">
@@ -34,15 +34,15 @@ export function Footer() {
             </li>
           </ul>
           <div className="flex gap-2 mt-8">
-            {[Instagram, Facebook, Twitter].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
-              >
-                <Icon className="w-4 h-4" />
-              </a>
-            ))}
+            <a
+              href="https://www.instagram.com/baby.fitters?igsh=and3cnNmaTY0bmdq"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Baby Fitters on Instagram"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
           </div>
         </div>
 

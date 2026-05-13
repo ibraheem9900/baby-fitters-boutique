@@ -1,6 +1,6 @@
 import { Link } from "wouter";
-import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw, Inbox, Phone, Mail, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw, Inbox, Phone, Mail, MapPin, Search } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
@@ -142,6 +142,20 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<AdminTab>("products");
   const [useCustomChart, setUseCustomChart] = useState(false);
   const [productSizeChart, setProductSizeChart] = useState<SizeChartRow[]>([]);
+  const [adminSearch, setAdminSearch] = useState("");
+
+  const displayProducts = useMemo(() => {
+    if (!products) return null;
+    const q = adminSearch.toLowerCase().trim();
+    if (!q) return products;
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(q) ||
+      categoryLabel(p.category).toLowerCase().includes(q) ||
+      (p.subcategory ?? "").toLowerCase().includes(q) ||
+      (p.gender ?? "").toLowerCase().includes(q) ||
+      (p.age_group ?? "").toLowerCase().includes(q)
+    );
+  }, [products, adminSearch]);
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
@@ -350,6 +364,47 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               >
                 {showForm ? <><X className="w-4 h-4" /> Close</> : <><Plus className="w-4 h-4" /> Add product</>}
               </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              {CATEGORIES.map((cat) => {
+                const count = products?.filter((p) => p.category === cat.slug).length ?? "—";
+                const boyCount = products?.filter((p) => p.category === cat.slug && p.gender === "boys").length;
+                const girlCount = products?.filter((p) => p.category === cat.slug && p.gender === "girls").length;
+                return (
+                  <div key={cat.slug} className={`${cat.tint} rounded-2xl p-4 border border-border/40`}>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-foreground/60 leading-tight">{cat.label}</p>
+                    <p className="font-display text-3xl mt-1 text-foreground">{count}</p>
+                    <p className="text-xs text-muted-foreground">product{count !== 1 ? "s" : ""}</p>
+                    {(boyCount !== undefined || girlCount !== undefined) && (boyCount! > 0 || girlCount! > 0) && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {boyCount! > 0 && `${boyCount} boys`}{boyCount! > 0 && girlCount! > 0 && " · "}{girlCount! > 0 && `${girlCount} girls`}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={adminSearch}
+                onChange={(e) => setAdminSearch(e.target.value)}
+                placeholder="Search by name, category, subcategory, gender, age…"
+                className="w-full pl-11 pr-10 py-3 rounded-2xl bg-card border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground transition-shadow"
+              />
+              {adminSearch && (
+                <button
+                  type="button"
+                  onClick={() => setAdminSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+              )}
             </div>
 
             {showForm && (
@@ -585,15 +640,26 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               </form>
             )}
 
-            {products === null ? (
+            {displayProducts === null ? (
               <p className="text-muted-foreground">Loading...</p>
-            ) : products.length === 0 ? (
+            ) : products!.length === 0 ? (
               <div className="text-center py-20 bg-card rounded-3xl border border-border">
                 <h2 className="font-display text-2xl">No products yet</h2>
                 <p className="text-muted-foreground mt-2">Click "Add product" to get started.</p>
               </div>
+            ) : displayProducts.length === 0 ? (
+              <div className="text-center py-16 bg-card rounded-3xl border border-border">
+                <Search className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
+                <h2 className="font-display text-xl">No results for "{adminSearch}"</h2>
+                <p className="text-muted-foreground mt-1 text-sm">Try a different name, category, or keyword.</p>
+              </div>
             ) : (
               <div className="bg-card rounded-3xl border border-border overflow-hidden">
+                <div className="px-4 py-2.5 border-b border-border bg-muted/40 flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground font-semibold">
+                    {adminSearch ? `${displayProducts.length} of ${products!.length} products` : `${products!.length} products`}
+                  </p>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-muted">
@@ -608,7 +674,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {products.map((p) => (
+                      {displayProducts.map((p) => (
                         <tr key={p.id} className="border-t border-border hover:bg-muted/40 transition-colors">
                           <td className="px-4 py-3">
                             <Link to={`/product/${p.id}`} className="flex items-center gap-3 hover:text-primary">

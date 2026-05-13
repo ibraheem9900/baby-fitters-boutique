@@ -48,8 +48,8 @@ export function CategoryPage() {
 
   const priceBounds = useMemo(() => {
     if (!inCategory.length) return { min: 0, max: 50000 };
-    const prices = inCategory.map((p) => p.price);
-    return { min: Math.min(...prices, 0), max: Math.max(...prices, 1000) };
+    const prices = inCategory.map((p) => Math.round(p.price * (1 - (p.discount_percent ?? 0) / 100)));
+    return { min: 0, max: Math.max(...prices, 1000) };
   }, [inCategory]);
 
   useEffect(() => {

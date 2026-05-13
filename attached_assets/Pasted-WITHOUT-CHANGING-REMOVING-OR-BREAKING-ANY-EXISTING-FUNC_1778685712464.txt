@@ -1,0 +1,128 @@
+WITHOUT CHANGING, REMOVING, OR BREAKING ANY EXISTING FUNCTIONALITY OR DESIGN, properly implement the following improvements across the BabyFitters website and Admin/Secret Portal.
+
+━━━━━━━━━━━━━━━━━━━
+
+1. REMOVE TOYS SECTION COMPLETELY
+   ━━━━━━━━━━━━━━━━━━━
+
+There should NOT be any Toys section anywhere on the website.
+
+Requirements:
+
+* Remove Toys section completely
+* Remove Toys category properly
+* Remove Toys navigation links
+* Remove Toys references from homepage
+* Remove Toys from navbar
+* Remove Toys from footer
+* Remove Toys from filters if present
+* Remove Toys from category listings
+* Ensure no empty spaces remain after removal
+
+IMPORTANT:
+Only the main 4 categories should remain across the website exactly as intended.
+
+No extra categories should appear other than the actual main website categories.
+
+━━━━━━━━━━━━━━━━━━━
+2. ADMIN PORTAL PRODUCT SEARCH BAR
+━━━━━━━━━━━━━━━━━━━
+
+Inside the Admin/Secret Portal product section:
+
+Add a proper product search bar above the product listing area.
+
+Requirements:
+
+* Admin should be able to search products easily
+* Search by:
+
+  * product name
+  * category
+  * keywords
+* Fast and responsive search behavior
+* Smooth UI
+* Premium clean design
+* Proper responsive behavior
+
+━━━━━━━━━━━━━━━━━━━
+3. CATEGORY PRODUCT COUNT DISPLAY
+━━━━━━━━━━━━━━━━━━━
+
+Under the search section inside Admin/Secret Portal:
+
+Display how many products exist inside each category.
+
+Requirements:
+
+Examples:
+
+* Boys → X Products
+* Girls → X Products
+* General → X Products
+* Cosmetics → X Products
+
+Requirements:
+
+* Real-time count display
+* Proper responsive layout
+* Clean admin UI
+* Correct database counting
+* Automatically update when products are added or removed
+
+━━━━━━━━━━━━━━━━━━━
+4. AGE FILTER & PRICE FILTER FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently Age Filter and Price Filter are not working properly.
+
+Fix both filters completely.
+
+Requirements:
+
+* Age filter must properly filter products
+* Price filter must properly filter products
+* Smooth dynamic filtering
+* Correct database querying
+* Real-time filtering updates
+* Proper mobile responsiveness
+* No broken filtering behavior
+
+Age filter should support:
+
+* months
+* years
+* newborn
+* 1 year to 10+ years
+
+Price filter should:
+
+* work smoothly
+* update products instantly
+* use proper range behavior
+
+━━━━━━━━━━━━━━━━━━━
+5. FOOTER SOCIAL LINKS UPDATE
+━━━━━━━━━━━━━━━━━━━
+
+Update footer social media links properly.
+
+Instagram:
+When user clicks Instagram icon, it should open this page:
+
+https://www.instagram.com/baby.fitters?igsh=and3cnNmaTY0bmdq
+
+Requirements:
+
+* Proper clickable Instagram icon
+* Open correct Instagram profile
+* Responsive behavior
+* Smooth interaction
+
+Also:
+
+* Remove Facebook link for now
+* Remove Twitter/X link for now
+* Only Instagram should remain visible in footer social section
+
+Everything must remain smooth, responsive, premium, and production-ready WITHOUT breaking any existing functionality.
