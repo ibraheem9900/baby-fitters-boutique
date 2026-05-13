@@ -37,8 +37,8 @@ export function Header() {
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
 
           <Link to="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Baby Fitters home">
-            <BrandLogo className="h-10 md:h-12 w-auto aspect-[1/1] group-hover:scale-[1.03] transition-transform" rounded="rounded-xl" />
-            <span className="hidden sm:block font-display text-[18px] font-medium tracking-tight leading-none text-foreground group-hover:text-primary transition-colors select-none">
+            <BrandLogo className="h-12 md:h-12 w-auto aspect-[1/1] group-hover:scale-[1.03] transition-transform" rounded="rounded-xl" />
+            <span className="font-display text-[17px] md:text-[18px] font-medium tracking-tight leading-none text-foreground group-hover:text-primary transition-colors select-none">
               Baby Fitters
             </span>
           </Link>
