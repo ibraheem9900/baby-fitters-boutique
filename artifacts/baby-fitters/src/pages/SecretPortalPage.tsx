@@ -13,6 +13,7 @@ import {
   getHeroImage, setHeroImage, resetHeroImage,
   getPopupConfig, setPopupConfig,
   getSizeChart, saveSizeChart,
+  getProductSizeChart, saveProductSizeChart, deleteProductSizeChart,
   DEFAULT_SIZE_CHART, DEFAULT_POPUP_1, DEFAULT_POPUP_2,
   type PopupConfig, type SizeChartRow,
 } from "@/lib/site-settings";
@@ -139,6 +140,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("products");
+  const [useCustomChart, setUseCustomChart] = useState(false);
+  const [productSizeChart, setProductSizeChart] = useState<SizeChartRow[]>([]);
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
@@ -221,13 +224,23 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       if (form.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", form.id);
         if (error) throw error;
+        if (useCustomChart && productSizeChart.length > 0) {
+          await saveProductSizeChart(form.id, productSizeChart);
+        } else {
+          await deleteProductSizeChart(form.id);
+        }
         toast.success("Product updated");
       } else {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data: newData, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        if (newData?.id && useCustomChart && productSizeChart.length > 0) {
+          await saveProductSizeChart(newData.id, productSizeChart);
+        }
         toast.success("Product added");
       }
       setForm(emptyForm);
+      setUseCustomChart(false);
+      setProductSizeChart([]);
       setShowForm(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
@@ -260,6 +273,14 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       age_group: p.age_group ?? "",
       images: (p.images && p.images.length ? p.images : (p.image_url ? [p.image_url] : [])),
       variants: p.variants ?? [],
+    });
+    setUseCustomChart(false);
+    setProductSizeChart([]);
+    getProductSizeChart(p.id).then((rows) => {
+      if (rows && rows.length > 0) {
+        setUseCustomChart(true);
+        setProductSizeChart(rows);
+      }
     });
     setShowForm(true);
     setActiveTab("products");
@@ -466,6 +487,86 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       </div>
                     </Field>
                   </div>
+                  <div className="md:col-span-2">
+                    <div className="bg-background border border-border rounded-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
+                        <div>
+                          <p className="text-[13px] font-bold uppercase tracking-wide text-muted-foreground">Product Size Chart</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Override the global size chart for this specific product.</p>
+                        </div>
+                        <Toggle
+                          label={useCustomChart ? "Custom" : "Using global"}
+                          checked={useCustomChart}
+                          onChange={(v) => {
+                            setUseCustomChart(v);
+                            if (v && productSizeChart.length === 0) {
+                              setProductSizeChart(DEFAULT_SIZE_CHART.map((r) => ({ ...r })));
+                            }
+                          }}
+                        />
+                      </div>
+                      {useCustomChart && (
+                        <div className="p-4 space-y-3">
+                          <div className="overflow-x-auto rounded-xl border border-border">
+                            <table className="w-full text-sm">
+                              <thead className="bg-muted">
+                                <tr className="text-left">
+                                  <th className="px-3 py-2 font-bold text-xs">Size</th>
+                                  <th className="px-3 py-2 font-bold text-xs">Chest</th>
+                                  <th className="px-3 py-2 font-bold text-xs">Length</th>
+                                  <th className="px-3 py-2 font-bold text-xs">Weight</th>
+                                  <th className="px-3 py-2 w-10" />
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {productSizeChart.map((row, i) => (
+                                  <tr key={i} className="border-t border-border">
+                                    {(["size", "chest", "length", "weight"] as const).map((field) => (
+                                      <td key={field} className="px-2 py-1.5">
+                                        <input
+                                          value={row[field]}
+                                          onChange={(e) => setProductSizeChart((prev) => prev.map((r, ri) => ri === i ? { ...r, [field]: e.target.value } : r))}
+                                          className="input text-xs py-1.5 px-2 rounded-lg"
+                                          placeholder={field}
+                                        />
+                                      </td>
+                                    ))}
+                                    <td className="px-2 py-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setProductSizeChart((prev) => prev.filter((_, ri) => ri !== i))}
+                                        className="w-7 h-7 rounded-full hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setProductSizeChart((prev) => [...prev, { size: "", chest: "", length: "", weight: "" }])}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-blush text-xs font-semibold transition-colors"
+                            >
+                              <Plus className="w-3 h-3" /> Add row
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setProductSizeChart(DEFAULT_SIZE_CHART.map((r) => ({ ...r })))}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-blush text-xs font-semibold transition-colors"
+                            >
+                              <RotateCcw className="w-3 h-3" /> Load defaults
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">This chart will appear on the product page instead of the global size chart. Saved when you click "Save product".</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="md:col-span-2 flex flex-wrap gap-4">
                     <Toggle label="Featured" checked={form.is_featured} onChange={(v) => setForm({ ...form, is_featured: v })} />
                     <Toggle label="New arrival" checked={form.is_new_arrival} onChange={(v) => setForm({ ...form, is_new_arrival: v })} />
@@ -476,7 +577,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   <button type="submit" disabled={saving} className="px-6 py-3 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors disabled:opacity-50">
                     {saving ? "Saving..." : form.id ? "Update product" : "Add product"}
                   </button>
-                  <button type="button" onClick={() => { setForm(emptyForm); setShowForm(false); }} className="px-6 py-3 rounded-full bg-muted font-semibold hover:bg-blush transition-colors">
+                  <button type="button" onClick={() => { setForm(emptyForm); setUseCustomChart(false); setProductSizeChart([]); setShowForm(false); }} className="px-6 py-3 rounded-full bg-muted font-semibold hover:bg-blush transition-colors">
                     Cancel
                   </button>
                 </div>

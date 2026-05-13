@@ -1,0 +1,152 @@
+WITHOUT CHANGING, REMOVING, OR BREAKING ANY EXISTING FUNCTIONALITY OR DESIGN, properly implement the following improvements across the BabyFitters website and Secret Portal/Admin Panel.
+
+━━━━━━━━━━━━━━━━━━━
+
+1. PRODUCT-SPECIFIC SIZE CHART SYSTEM
+   ━━━━━━━━━━━━━━━━━━━
+
+Every product should have its own separate size chart system.
+
+Requirements:
+
+* Keep the current default/global size chart system exactly as it is
+* The existing default size chart should still work across the website
+
+BUT:
+
+Inside each individual product in the Secret Portal/Admin Panel:
+
+* Add a dedicated custom size chart section
+* Allow product-specific size chart customization
+
+Admin should be able to:
+
+* Add new rows
+* Edit rows
+* Delete rows
+* Customize measurements properly
+* Save product-specific size charts independently
+
+Requirements:
+
+* Proper table-based UI
+* Clean responsive design
+* Easy editing experience
+* Product-specific changes should reflect correctly on frontend
+* If no custom size chart is added, then default/global size chart should automatically be used
+
+━━━━━━━━━━━━━━━━━━━
+2. BACK BUTTON NAVIGATION FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently when opening a product and clicking the back button, it redirects directly to the homepage.
+
+This is incorrect.
+
+Fix this properly.
+
+Requirements:
+
+* Back button should return user to the exact previous page
+* Preserve:
+
+  * selected category
+  * selected subcategory
+  * filters
+  * scroll position
+* Navigation should feel natural and smooth
+
+Examples:
+
+* If user came from Boys category, back button should return to Boys category
+* If user came from filtered products, it should return to same filtered state
+
+━━━━━━━━━━━━━━━━━━━
+3. MOBILE FILTER DRAWER AUTO-CLOSE FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently on mobile, filters panel must be manually closed.
+
+Improve this behavior.
+
+Requirements:
+
+* When user swipes/closes naturally, the filter drawer should automatically close
+* Add smooth mobile drawer behavior
+* Add gesture/swipe support
+* Smooth animations required
+* Premium responsive UX
+
+━━━━━━━━━━━━━━━━━━━
+4. CATEGORY NAVIGATION SCROLL FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently when selecting a category, the website automatically scrolls user to the footer section.
+
+This is incorrect.
+
+Fix this properly.
+
+Requirements:
+
+* After selecting a category, user should remain near the header/top section
+* Proper category page opening behavior
+* Smooth scrolling behavior
+* No unwanted auto-scroll to footer
+
+━━━━━━━━━━━━━━━━━━━
+5. PREMIUM LOADING STATES ACROSS ENTIRE WEBSITE
+━━━━━━━━━━━━━━━━━━━
+
+Add proper loading states and loaders throughout the entire website.
+
+Requirements:
+
+* Add loading states on:
+
+  * page openings
+  * product loading
+  * category loading
+  * image loading
+  * filters
+  * search
+  * product detail pages
+  * secret portal/admin pages
+
+The loading experience should help users with:
+
+* slow internet
+* weak network connections
+* delayed loading situations
+
+━━━━━━━━━━━━━━━━━━━
+6. BABYFITTERS CUSTOM LOADER ANIMATION
+━━━━━━━━━━━━━━━━━━━
+
+Create a unique BabyFitters-themed loading animation.
+
+Requirements:
+
+* Soft premium animation
+* Teddy/baby-themed loading feel
+* Smooth transitions
+* Premium ecommerce feel
+* Minimal and clean design
+* Pastel theme matching current website
+
+Examples:
+
+* Teddy animation
+* Soft bouncing animation
+* Gentle shimmer/skeleton loading
+* Smooth fade effects
+
+The loader should feel:
+
+* Cute
+* Premium
+* Soft
+* Luxury baby brand inspired
+* Smooth and professional
+
+Loading states must appear properly across the complete website without breaking performance or responsiveness.

@@ -1,4 +1,4 @@
-import { Link, useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart, Ruler } from "lucide-react";
@@ -10,10 +10,12 @@ import { SizeChartModal } from "@/components/SizeChartModal";
 import { categoryLabel, formatPrice } from "@/lib/categories";
 import { fetchProducts, discountedPrice, productImages, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ProductPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const [, navigate] = useLocation();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [qty, setQty] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -23,7 +25,14 @@ export function ProductPage() {
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(() => setProducts([]));
-  }, []);
+    const channel = supabase
+      .channel(`product-page-${id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "products", filter: `id=eq.${id}` }, () => {
+        fetchProducts().then(setProducts).catch(() => {});
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id]);
 
   const product = products?.find((p) => p.id === id);
   const related = (products ?? []).filter((p) => p.category === product?.category && p.id !== id).slice(0, 4);
@@ -46,15 +55,30 @@ export function ProductPage() {
     return Array.from(map.values());
   }, [variants]);
 
+  function goBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigate("/");
+    }
+  }
+
   if (products === null) {
     return (
       <PageLayout>
-        <div className="container mx-auto px-4 py-12 grid lg:grid-cols-2 gap-12">
-          <div className="aspect-square skeleton rounded-3xl" />
-          <div className="space-y-4">
-            <div className="skeleton h-8 w-3/4 rounded" />
-            <div className="skeleton h-6 w-1/3 rounded" />
-            <div className="skeleton h-24 w-full rounded" />
+        <div className="site-container py-12">
+          <div className="w-24 h-5 skeleton rounded mb-6" />
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div className="aspect-square skeleton rounded-3xl" />
+            <div className="space-y-5 pt-4">
+              <div className="skeleton h-5 w-1/4 rounded" />
+              <div className="skeleton h-12 w-4/5 rounded" />
+              <div className="skeleton h-8 w-1/3 rounded" />
+              <div className="skeleton h-24 w-full rounded" />
+              <div className="flex gap-2 mt-6">
+                {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-10 w-16 rounded-full" />)}
+              </div>
+            </div>
           </div>
         </div>
       </PageLayout>
@@ -64,9 +88,11 @@ export function ProductPage() {
   if (!product) {
     return (
       <PageLayout>
-        <div className="container mx-auto px-4 py-20 text-center">
+        <div className="site-container py-20 text-center">
           <h1 className="font-display text-4xl">Product not found</h1>
-          <Link to="/" className="text-primary mt-4 inline-block">← Go home</Link>
+          <button onClick={goBack} className="text-primary mt-4 inline-flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> Go back
+          </button>
         </div>
       </PageLayout>
     );
@@ -89,11 +115,14 @@ export function ProductPage() {
 
   return (
     <PageLayout>
-      <SizeChartModal open={sizeChartOpen} onClose={() => setSizeChartOpen(false)} />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
+      <SizeChartModal open={sizeChartOpen} onClose={() => setSizeChartOpen(false)} productId={product.id} />
+      <div className="site-container py-8">
+        <button
+          onClick={goBack}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back
+        </button>
         <div className="grid lg:grid-cols-2 gap-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
@@ -109,12 +138,12 @@ export function ProductPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Link
-              to={`/category/${product.category}`}
-              className="inline-block text-xs uppercase tracking-widest text-primary font-bold mb-3"
+            <button
+              onClick={() => navigate(`/category/${product.category}`)}
+              className="inline-block text-xs uppercase tracking-widest text-primary font-bold mb-3 hover:underline"
             >
               {categoryLabel(product.category)}
-            </Link>
+            </button>
             <h1 className="font-display text-4xl sm:text-5xl">{product.name}</h1>
             <div className="mt-4 flex items-baseline gap-3 flex-wrap">
               <p className="font-display text-3xl">{formatPrice(finalPrice)}</p>
@@ -127,7 +156,7 @@ export function ProductPage() {
                 </>
               )}
             </div>
-            <p className="mt-6 text-muted-foreground leading-relaxed">
+            <p className="mt-6 text-muted-foreground leading-relaxed text-[15px]">
               {product.description ?? "A soft, safe and sweet addition to your little one's collection. Made with care from premium materials."}
             </p>
 
@@ -187,17 +216,17 @@ export function ProductPage() {
 
             <div className="mt-8 flex items-center gap-4">
               <div className="flex items-center gap-1 bg-muted rounded-full p-1">
-                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-9 h-9 rounded-full hover:bg-background flex items-center justify-center">
+                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-9 h-9 rounded-full hover:bg-background flex items-center justify-center transition-colors">
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="w-8 text-center font-semibold">{qty}</span>
-                <button onClick={() => setQty((q) => q + 1)} className="w-9 h-9 rounded-full hover:bg-background flex items-center justify-center">
+                <button onClick={() => setQty((q) => q + 1)} className="w-9 h-9 rounded-full hover:bg-background flex items-center justify-center transition-colors">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
               <button
                 onClick={handleAdd}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors shadow-pillow"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-foreground text-background font-semibold hover:bg-primary transition-colors shadow-pillow text-[15px]"
               >
                 <ShoppingBag className="w-4 h-4" />
                 Add to cart — {formatPrice(finalPrice * qty)}

@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { SlidersHorizontal, X } from "lucide-react";
 import { GENDERS } from "@/lib/taxonomy";
 import { formatPrice } from "@/lib/categories";
 import { defaultFilters, type FilterState } from "@/lib/filter-utils";
@@ -35,17 +37,6 @@ function monthsToSlider(m: number): number {
   return idx >= 0 ? idx : AGE_VALUE_MAP.length - 1;
 }
 
-function ageGroupFromProduct(ageGroup: string | null): number | null {
-  if (!ageGroup) return null;
-  const map: Record<string, number> = {
-    "0-3m": 1.5, "3-6m": 4.5, "3-12m": 7, "6-12m": 9,
-    "1-2y": 18, "1-4y": 30, "2-3y": 30, "3-4y": 42,
-    "3-5y": 48, "4-5y": 54, "5-6y": 66, "5-10y": 90,
-    "7-8y": 90, "9-10y": 114, "10+": 132,
-  };
-  return map[ageGroup.toLowerCase().trim()] ?? null;
-}
-
 export function FiltersPanel({
   value,
   onChange,
@@ -76,11 +67,11 @@ export function FiltersPanel({
   const minAgeSlider = monthsToSlider(value.minAge);
   const maxAgeSlider = monthsToSlider(value.maxAge);
 
-  const body = (
+  const filterBody = (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-xl font-semibold">Filters</h3>
-        <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-primary font-medium">
+        <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors">
           Clear all
         </button>
       </div>
@@ -112,28 +103,14 @@ export function FiltersPanel({
             }}
           />
           <input
-            type="range"
-            min={0}
-            max={AGE_VALUE_MAP.length - 1}
-            step={1}
-            value={minAgeSlider}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (v < maxAgeSlider) onChange({ ...value, minAge: sliderToMonths(v) });
-            }}
+            type="range" min={0} max={AGE_VALUE_MAP.length - 1} step={1} value={minAgeSlider}
+            onChange={(e) => { const v = Number(e.target.value); if (v < maxAgeSlider) onChange({ ...value, minAge: sliderToMonths(v) }); }}
             className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
             style={{ zIndex: minAgeSlider >= maxAgeSlider - 1 ? 5 : 3 }}
           />
           <input
-            type="range"
-            min={0}
-            max={AGE_VALUE_MAP.length - 1}
-            step={1}
-            value={maxAgeSlider}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (v > minAgeSlider) onChange({ ...value, maxAge: sliderToMonths(v) });
-            }}
+            type="range" min={0} max={AGE_VALUE_MAP.length - 1} step={1} value={maxAgeSlider}
+            onChange={(e) => { const v = Number(e.target.value); if (v > minAgeSlider) onChange({ ...value, maxAge: sliderToMonths(v) }); }}
             className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
             style={{ zIndex: 4 }}
           />
@@ -141,8 +118,7 @@ export function FiltersPanel({
         <div className="flex flex-wrap gap-1.5 mt-3">
           {AGE_STOPS.filter((_, i) => i % 2 === 0).map((s) => (
             <button
-              key={s.months}
-              type="button"
+              key={s.months} type="button"
               onClick={() => onChange({ ...value, minAge: s.months, maxAge: Math.min(s.months + 24, 168) })}
               className="px-2 py-1 rounded-full text-[10px] font-semibold border border-border hover:bg-blush hover:text-primary transition-colors"
             >
@@ -159,19 +135,14 @@ export function FiltersPanel({
           <span>70% off</span>
         </div>
         <input
-          type="range"
-          min={0}
-          max={70}
-          step={5}
-          value={value.minDiscount}
+          type="range" min={0} max={70} step={5} value={value.minDiscount}
           onChange={(e) => onChange({ ...value, minDiscount: Number(e.target.value) })}
           className="w-full accent-[var(--color-primary)]"
         />
         <div className="flex justify-between mt-1">
           {[0, 10, 25, 50, 70].map((d) => (
             <button
-              key={d}
-              type="button"
+              key={d} type="button"
               onClick={() => onChange({ ...value, minDiscount: d })}
               className={`text-[10px] font-semibold transition-colors ${value.minDiscount === d ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
@@ -182,16 +153,13 @@ export function FiltersPanel({
       </div>
 
       <div>
-        <p className="filter-label">Price Range</p>
+        <p className="filter-label">Max Price</p>
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 font-medium">
-          <span>{formatPrice(value.minPrice)}</span>
+          <span>{formatPrice(priceBounds.min)}</span>
           <span>{formatPrice(value.maxPrice)}</span>
         </div>
         <input
-          type="range"
-          min={priceBounds.min}
-          max={priceBounds.max}
-          value={value.maxPrice}
+          type="range" min={priceBounds.min} max={priceBounds.max} value={value.maxPrice}
           onChange={(e) => onChange({ ...value, maxPrice: Number(e.target.value) })}
           className="w-full accent-[var(--color-primary)]"
         />
@@ -204,25 +172,84 @@ export function FiltersPanel({
       <div className="lg:hidden sticky top-16 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 bg-background/90 backdrop-blur-md border-b border-border">
         <button
           type="button"
-          onClick={() => setMobileOpen((v) => !v)}
+          onClick={() => setMobileOpen(true)}
           className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-full bg-card border border-border shadow-soft text-sm font-semibold"
         >
           <span className="inline-flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4" /> Filters
             {activeCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{activeCount}</span>
+              <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                {activeCount}
+              </span>
             )}
           </span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${mobileOpen ? "rotate-180" : ""}`} />
+          <span className="text-xs text-muted-foreground font-normal">Tap to open ↑</span>
         </button>
-        {mobileOpen && (
-          <div className="mt-2 bg-card border border-border rounded-3xl p-5 shadow-pillow max-h-[70vh] overflow-y-auto">
-            {body}
-          </div>
-        )}
       </div>
+
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                onClick={() => setMobileOpen(false)}
+                className="fixed inset-0 z-[60] bg-foreground/40 backdrop-blur-sm lg:hidden"
+              />
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.4 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 80 || info.velocity.y > 400) {
+                    setMobileOpen(false);
+                  }
+                }}
+                transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.8 }}
+                className="fixed bottom-0 left-0 right-0 z-[61] bg-card rounded-t-3xl shadow-pillow lg:hidden"
+                style={{ maxHeight: "85dvh" }}
+              >
+                <div className="flex flex-col">
+                  <div className="flex justify-center pt-3 pb-1 flex-shrink-0 cursor-grab active:cursor-grabbing">
+                    <div className="w-12 h-1.5 rounded-full bg-border" />
+                  </div>
+                  <div className="flex items-center justify-between px-5 pt-2 pb-3 flex-shrink-0 border-b border-border">
+                    <span className="font-display text-lg font-semibold">Filters</span>
+                    <button
+                      onClick={() => setMobileOpen(false)}
+                      className="w-9 h-9 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="overflow-y-auto flex-1 px-5 pt-5 pb-10">
+                    {filterBody}
+                  </div>
+                  <div className="flex-shrink-0 px-5 pb-6 pt-3 border-t border-border bg-card">
+                    <button
+                      type="button"
+                      onClick={() => setMobileOpen(false)}
+                      className="w-full py-3.5 rounded-full bg-foreground text-background font-bold text-[15px] hover:bg-primary transition-colors"
+                    >
+                      Show results{activeCount > 0 ? ` · ${activeCount} filter${activeCount !== 1 ? "s" : ""}` : ""}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+
       <aside className="hidden lg:block bg-card border border-border rounded-3xl p-6 sticky top-24 self-start">
-        {body}
+        {filterBody}
       </aside>
     </>
   );
@@ -241,4 +268,3 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     </button>
   );
 }
-

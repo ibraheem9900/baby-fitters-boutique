@@ -98,3 +98,21 @@ export async function saveSizeChart(rows: SizeChartRow[]): Promise<void> {
 export function useHeroPopups() {
   return { POPUP_1_SLUG, POPUP_2_SLUG, HERO_SLUG };
 }
+
+function productChartSlug(productId: string) {
+  return `__chart_${productId}__`;
+}
+
+export async function getProductSizeChart(productId: string): Promise<SizeChartRow[] | null> {
+  const raw = await getSetting(productChartSlug(productId));
+  if (!raw) return null;
+  try { return JSON.parse(raw) as SizeChartRow[]; } catch { return null; }
+}
+
+export async function saveProductSizeChart(productId: string, rows: SizeChartRow[]): Promise<void> {
+  return setSetting(productChartSlug(productId), JSON.stringify(rows));
+}
+
+export async function deleteProductSizeChart(productId: string): Promise<void> {
+  return deleteSetting(productChartSlug(productId));
+}
