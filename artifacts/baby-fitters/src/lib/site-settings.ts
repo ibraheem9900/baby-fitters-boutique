@@ -99,6 +99,14 @@ export function useHeroPopups() {
   return { POPUP_1_SLUG, POPUP_2_SLUG, HERO_SLUG };
 }
 
+const ADMIN_PW_SLUG = "__admin_password__";
+export async function getAdminPasswordHash(): Promise<string | null> {
+  return getSetting(ADMIN_PW_SLUG);
+}
+export async function setAdminPasswordHash(hash: string): Promise<void> {
+  return setSetting(ADMIN_PW_SLUG, hash);
+}
+
 function productChartSlug(productId: string) {
   return `__chart_${productId}__`;
 }

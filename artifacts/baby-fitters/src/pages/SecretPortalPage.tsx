@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw, Inbox, Phone, Mail, MapPin, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, X, Lock, LogOut, Image as ImageIcon, MessageSquare, Table2, RotateCcw, Inbox, Phone, Mail, MapPin, Search, KeyRound, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { CATEGORIES, categoryLabel, formatPrice, type CategorySlug } from "@/lib/categories";
@@ -14,12 +14,32 @@ import {
   getPopupConfig, setPopupConfig,
   getSizeChart, saveSizeChart,
   getProductSizeChart, saveProductSizeChart, deleteProductSizeChart,
+  getAdminPasswordHash, setAdminPasswordHash,
   DEFAULT_SIZE_CHART, DEFAULT_POPUP_1, DEFAULT_POPUP_2,
   type PopupConfig, type SizeChartRow,
 } from "@/lib/site-settings";
 
 const ADMIN_ACCESS_CODE = "babyfitters2026";
 const AUTH_KEY = "baby-fitters-admin-auth";
+
+async function sha256(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function verifyAdminPassword(entered: string): Promise<boolean> {
+  try {
+    const storedHash = await getAdminPasswordHash();
+    if (storedHash) {
+      const hash = await sha256(entered);
+      return hash === storedHash;
+    }
+    return entered === ADMIN_ACCESS_CODE;
+  } catch {
+    return entered === ADMIN_ACCESS_CODE;
+  }
+}
 
 export function SecretPortalPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -38,19 +58,18 @@ function PasscodeGate({ onSuccess }: { onSuccess: () => void }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setTimeout(() => {
-      if (code === ADMIN_ACCESS_CODE) {
-        sessionStorage.setItem(AUTH_KEY, "1");
-        onSuccess();
-      } else {
-        setError("Invalid access code.");
-        setLoading(false);
-      }
-    }, 350);
+    const valid = await verifyAdminPassword(code);
+    if (valid) {
+      sessionStorage.setItem(AUTH_KEY, "1");
+      onSuccess();
+    } else {
+      setError("Invalid access code.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -131,7 +150,7 @@ const emptyForm: FormState = {
 };
 
 const MAX_IMAGES = 6;
-type AdminTab = "products" | "images" | "hero" | "popups" | "sizechart" | "inquiries";
+type AdminTab = "products" | "images" | "hero" | "popups" | "sizechart" | "inquiries" | "password";
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -302,12 +321,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }
 
   const TABS: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
-    { id: "products",  label: "Products",       icon: <Plus className="w-4 h-4" /> },
-    { id: "inquiries", label: "Inquiries",      icon: <Inbox className="w-4 h-4" /> },
+    { id: "products",  label: "Products",        icon: <Plus className="w-4 h-4" /> },
+    { id: "inquiries", label: "Inquiries",       icon: <Inbox className="w-4 h-4" /> },
     { id: "images",    label: "Category Images", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "hero",      label: "Hero Image",      icon: <ImageIcon className="w-4 h-4" /> },
     { id: "popups",    label: "Hero Popups",     icon: <MessageSquare className="w-4 h-4" /> },
     { id: "sizechart", label: "Size Chart",      icon: <Table2 className="w-4 h-4" /> },
+    { id: "password",  label: "Change Password", icon: <KeyRound className="w-4 h-4" /> },
   ];
 
   return (
@@ -729,6 +749,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {activeTab === "hero" && <HeroImageManager />}
         {activeTab === "popups" && <PopupsManager />}
         {activeTab === "sizechart" && <SizeChartManager />}
+        {activeTab === "password" && <ChangePasswordManager />}
       </div>
     </div>
   );
@@ -1171,4 +1192,217 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 function PTag({ children }: { children: React.ReactNode }) {
   return <span className="px-2 py-0.5 rounded-full bg-blush text-[10px] font-bold uppercase tracking-wider">{children}</span>;
+}
+
+function PasswordInput({
+  label, value, show, onToggle, onChange, placeholder, autoComplete,
+}: {
+  label: string; value: string; show: boolean;
+  onToggle: () => void; onChange: (v: string) => void;
+  placeholder?: string; autoComplete?: string;
+}) {
+  return (
+    <div>
+      <span className="block text-[13px] font-bold mb-1.5 uppercase tracking-wide text-muted-foreground">{label}</span>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required
+          className="w-full px-4 py-3 pr-12 rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-[15px]"
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+          tabIndex={-1}
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ChangePasswordManager() {
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [fieldError, setFieldError] = useState("");
+
+  const MIN_LEN = 8;
+
+  const newStrength = newPw.length === 0 ? 0 : newPw.length < MIN_LEN ? 1 : newPw.length < 12 ? 2 : 3;
+  const strengthLabel = ["", "Too short", "Good", "Strong"][newStrength];
+  const strengthColor = ["", "bg-destructive", "bg-amber-400", "bg-emerald-500"][newStrength];
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFieldError("");
+
+    if (newPw.length < MIN_LEN) {
+      setFieldError(`New password must be at least ${MIN_LEN} characters.`);
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setFieldError("New passwords don't match. Please re-enter.");
+      return;
+    }
+    if (newPw === currentPw) {
+      setFieldError("New password must be different from the current password.");
+      return;
+    }
+
+    setStatus("loading");
+    try {
+      const valid = await verifyAdminPassword(currentPw);
+      if (!valid) {
+        setFieldError("Current password is incorrect. Please try again.");
+        setStatus("idle");
+        return;
+      }
+      const hash = await sha256(newPw);
+      await setAdminPasswordHash(hash);
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+      setStatus("success");
+      toast.success("Password updated successfully!");
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setStatus("idle");
+    }
+  }
+
+  if (status === "success") {
+    return (
+      <div className="max-w-md">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8 text-center"
+        >
+          <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+          </div>
+          <h3 className="font-display text-xl font-semibold text-emerald-900 mb-2">Password updated!</h3>
+          <p className="text-[14px] text-emerald-700 mb-6 leading-relaxed">
+            Your new password is active immediately. Use it next time you sign in.
+          </p>
+          <button
+            onClick={() => setStatus("idle")}
+            className="px-6 py-2.5 rounded-full bg-foreground text-background font-semibold text-sm hover:bg-primary transition-colors"
+          >
+            Done
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-md">
+      <div className="mb-8">
+        <p className="eyebrow">Security</p>
+        <h2 className="font-display text-3xl sm:text-4xl mt-2">Change Password</h2>
+        <p className="text-muted-foreground text-[14px] mt-2">
+          Update your admin access code. The new password takes effect immediately.
+        </p>
+      </div>
+
+      <div className="bg-card border border-border rounded-3xl p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <PasswordInput
+            label="Current password"
+            value={currentPw}
+            show={showCurrent}
+            onToggle={() => setShowCurrent((v) => !v)}
+            onChange={setCurrentPw}
+            placeholder="Your current access code"
+            autoComplete="current-password"
+          />
+
+          <div className="relative border-t border-border pt-5 space-y-5">
+            <PasswordInput
+              label="New password"
+              value={newPw}
+              show={showNew}
+              onToggle={() => setShowNew((v) => !v)}
+              onChange={setNewPw}
+              placeholder={`Minimum ${MIN_LEN} characters`}
+              autoComplete="new-password"
+            />
+
+            {newPw.length > 0 && (
+              <div className="space-y-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((lvl) => (
+                    <div
+                      key={lvl}
+                      className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${newStrength >= lvl ? strengthColor : "bg-muted"}`}
+                    />
+                  ))}
+                </div>
+                <p className={`text-[11px] font-semibold ${newStrength === 1 ? "text-destructive" : newStrength === 2 ? "text-amber-500" : "text-emerald-600"}`}>
+                  {strengthLabel}
+                </p>
+              </div>
+            )}
+
+            <PasswordInput
+              label="Confirm new password"
+              value={confirmPw}
+              show={showConfirm}
+              onToggle={() => setShowConfirm((v) => !v)}
+              onChange={setConfirmPw}
+              placeholder="Re-enter new password"
+              autoComplete="new-password"
+            />
+
+            {confirmPw.length > 0 && newPw.length > 0 && (
+              <p className={`text-[12px] font-medium flex items-center gap-1.5 ${newPw === confirmPw ? "text-emerald-600" : "text-destructive"}`}>
+                {newPw === confirmPw
+                  ? <><CheckCircle2 className="w-3.5 h-3.5" /> Passwords match</>
+                  : "Passwords don't match yet"}
+              </p>
+            )}
+          </div>
+
+          {fieldError && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-destructive bg-destructive/8 rounded-xl px-4 py-2.5 font-medium"
+            >
+              {fieldError}
+            </motion.p>
+          )}
+
+          <button
+            type="submit"
+            disabled={status === "loading" || !currentPw || !newPw || !confirmPw}
+            className="w-full py-3.5 rounded-full bg-foreground text-background font-bold text-[15px] hover:bg-primary transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {status === "loading" ? (
+              <><span className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" /> Updating…</>
+            ) : (
+              <><KeyRound className="w-4 h-4" /> Update password</>
+            )}
+          </button>
+        </form>
+      </div>
+
+      <p className="mt-4 text-[12px] text-muted-foreground text-center">
+        Password is hashed with SHA-256 and stored securely. The old password stops working immediately.
+      </p>
+    </div>
+  );
 }
