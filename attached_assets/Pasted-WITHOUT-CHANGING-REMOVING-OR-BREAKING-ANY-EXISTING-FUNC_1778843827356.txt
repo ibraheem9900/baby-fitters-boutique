@@ -1,0 +1,113 @@
+WITHOUT CHANGING, REMOVING, OR BREAKING ANY EXISTING FUNCTIONALITY OR DESIGN, properly implement the following final improvements across the BabyFitters website and Admin/Secret Portal.
+
+━━━━━━━━━━━━━━━━━━━
+
+1. ADD “SALES & DEALS” CATEGORY
+   ━━━━━━━━━━━━━━━━━━━
+
+Inside the homepage category section below the header:
+
+Add one more category called:
+
+“Sales & Deals”
+
+Requirements:
+
+* Add it properly inside the category section
+* Maintain same category card styling
+* Same rounded corners
+* Same overlay effect
+* Same animations
+* Same responsive behavior
+* Proper product routing
+* Products added to Sales & Deals should display correctly
+
+━━━━━━━━━━━━━━━━━━━
+2. SUBSCRIBE BUTTON EMAIL VERIFICATION SYSTEM
+━━━━━━━━━━━━━━━━━━━
+
+Currently the subscribe section is incomplete.
+
+Requirements:
+
+* When a user enters their email and clicks Subscribe:
+
+  * A verification/discount code should automatically be sent to that email
+  * The code should be for the 10% discount offer
+  * Proper success message should appear
+  * Proper loading state should appear while sending
+
+Requirements:
+
+* Proper email validation
+* Prevent invalid emails
+* Prevent duplicate submissions
+* Professional email sending flow
+* Smooth UX
+
+━━━━━━━━━━━━━━━━━━━
+3. CONTACT SECTION MESSAGE FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently when clicking “Send Message” inside Contact section, the message fails and shows:
+
+“Something went wrong”
+
+Fix this issue properly using the attached console logs.
+
+Requirements:
+
+* Contact form must send messages properly
+* No error messages
+* Proper backend/API handling
+* Proper validation
+* Proper loading state
+* Proper success/error feedback
+* Ensure messages are delivered correctly
+
+Do NOT break any existing contact functionality while fixing this.
+
+━━━━━━━━━━━━━━━━━━━
+4. AGE FILTER HANDLE IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━
+
+Currently the Age Filter slider is difficult to use because dragging does not work smoothly.
+
+Fix this properly.
+
+Requirements:
+
+* Add proper draggable slider handles
+* User should be able to click and drag smoothly
+* Better mobile responsiveness
+* Better desktop usability
+* Smooth animations and transitions
+* Premium filter interaction
+
+━━━━━━━━━━━━━━━━━━━
+5. DISCOUNT FILTER ALIGNMENT & RANGE FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently the discount filter values and slider alignment are incorrect.
+
+Example:
+
+* When selecting 25%, the bar incorrectly shows another value like 35%.
+
+Fix this completely.
+
+Requirements:
+
+* Correct slider value mapping
+* Correct percentage display
+* Proper alignment
+* Smooth slider behavior
+* Real-time filtering updates
+
+Also:
+
+* Discount range should support up to 99%
+* Proper responsive behavior
+* Premium UI/UX interaction
+
+Everything must remain smooth, responsive, production-ready, and visually consistent WITHOUT changing the current website design or breaking any existing functionality.

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
@@ -35,6 +35,95 @@ function sliderToMonths(v: number): number {
 function monthsToSlider(m: number): number {
   const idx = AGE_VALUE_MAP.findIndex((x) => x >= m);
   return idx >= 0 ? idx : AGE_VALUE_MAP.length - 1;
+}
+
+const DISCOUNT_STOPS = [0, 10, 25, 50, 70, 99];
+
+function discountToIdx(d: number): number {
+  let best = 0;
+  for (let i = 0; i < DISCOUNT_STOPS.length; i++) {
+    if ((DISCOUNT_STOPS[i] ?? 0) <= d) best = i;
+  }
+  return best;
+}
+
+function DualRangeSlider({
+  minIdx, maxIdx, total,
+  onMin, onMax,
+}: {
+  minIdx: number; maxIdx: number; total: number;
+  onMin: (i: number) => void; onMax: (i: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<"min" | "max" | null>(null);
+  const stateRef = useRef({ minIdx, maxIdx, onMin, onMax });
+  stateRef.current = { minIdx, maxIdx, onMin, onMax };
+
+  const minPct = (minIdx / total) * 100;
+  const maxPct = (maxIdx / total) * 100;
+
+  useEffect(() => {
+    const getIdx = (x: number) => {
+      const r = trackRef.current?.getBoundingClientRect();
+      if (!r) return 0;
+      return Math.round(Math.max(0, Math.min(1, (x - r.left) / r.width)) * total);
+    };
+    const move = (x: number) => {
+      const a = activeRef.current;
+      const { minIdx: mn, maxIdx: mx, onMin, onMax } = stateRef.current;
+      if (!a) return;
+      const i = getIdx(x);
+      if (a === "min" && i < mx) onMin(i);
+      if (a === "max" && i > mn) onMax(i);
+    };
+    const mm = (e: MouseEvent) => move(e.clientX);
+    const tm = (e: TouchEvent) => { e.preventDefault(); move(e.touches[0].clientX); };
+    const up = () => { activeRef.current = null; };
+
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("touchmove", tm, { passive: false });
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchend", up);
+    return () => {
+      window.removeEventListener("mousemove", mm);
+      window.removeEventListener("touchmove", tm);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchend", up);
+    };
+  }, [total]);
+
+  const startDrag = (which: "min" | "max") => (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    activeRef.current = which;
+  };
+
+  return (
+    <div ref={trackRef} className="relative h-8 flex items-center select-none mx-2.5">
+      <div className="absolute inset-x-0 h-1.5 rounded-full bg-muted" />
+      <div
+        className="absolute h-1.5 rounded-full bg-primary"
+        style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
+      />
+      <div
+        role="slider"
+        aria-label="Minimum age"
+        aria-valuenow={minIdx}
+        onMouseDown={startDrag("min")}
+        onTouchStart={startDrag("min")}
+        className="absolute w-5 h-5 -translate-x-1/2 rounded-full bg-primary border-2 border-white shadow-md cursor-grab active:cursor-grabbing z-10 touch-none hover:scale-110 transition-transform"
+        style={{ left: `${minPct}%` }}
+      />
+      <div
+        role="slider"
+        aria-label="Maximum age"
+        aria-valuenow={maxIdx}
+        onMouseDown={startDrag("max")}
+        onTouchStart={startDrag("max")}
+        className="absolute w-5 h-5 -translate-x-1/2 rounded-full bg-primary border-2 border-white shadow-md cursor-grab active:cursor-grabbing z-10 touch-none hover:scale-110 transition-transform"
+        style={{ left: `${maxPct}%` }}
+      />
+    </div>
+  );
 }
 
 export function FiltersPanel({
@@ -93,28 +182,13 @@ export function FiltersPanel({
           <span>{monthsToLabel(value.minAge)}</span>
           <span>{value.maxAge >= 168 ? "Any age" : monthsToLabel(value.maxAge)}</span>
         </div>
-        <div className="relative h-5 flex items-center">
-          <div className="absolute inset-x-0 h-1.5 bg-muted rounded-full" />
-          <div
-            className="absolute h-1.5 bg-primary rounded-full"
-            style={{
-              left: `${(minAgeSlider / (AGE_VALUE_MAP.length - 1)) * 100}%`,
-              right: `${100 - (maxAgeSlider / (AGE_VALUE_MAP.length - 1)) * 100}%`,
-            }}
-          />
-          <input
-            type="range" min={0} max={AGE_VALUE_MAP.length - 1} step={1} value={minAgeSlider}
-            onChange={(e) => { const v = Number(e.target.value); if (v < maxAgeSlider) onChange({ ...value, minAge: sliderToMonths(v) }); }}
-            className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
-            style={{ zIndex: minAgeSlider >= maxAgeSlider - 1 ? 5 : 3 }}
-          />
-          <input
-            type="range" min={0} max={AGE_VALUE_MAP.length - 1} step={1} value={maxAgeSlider}
-            onChange={(e) => { const v = Number(e.target.value); if (v > minAgeSlider) onChange({ ...value, maxAge: sliderToMonths(v) }); }}
-            className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
-            style={{ zIndex: 4 }}
-          />
-        </div>
+        <DualRangeSlider
+          minIdx={minAgeSlider}
+          maxIdx={maxAgeSlider}
+          total={AGE_VALUE_MAP.length - 1}
+          onMin={(i) => onChange({ ...value, minAge: sliderToMonths(i) })}
+          onMax={(i) => onChange({ ...value, maxAge: sliderToMonths(i) })}
+        />
         <div className="flex flex-wrap gap-1.5 mt-3">
           {AGE_STOPS.filter((_, i) => i % 2 === 0).map((s) => (
             <button
@@ -131,16 +205,20 @@ export function FiltersPanel({
       <div>
         <p className="filter-label">Min Discount</p>
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 font-medium">
-          <span>{value.minDiscount === 0 ? "Any" : `${value.minDiscount}%+ off`}</span>
-          <span>70% off</span>
+          <span>{value.minDiscount === 0 ? "Any discount" : `${value.minDiscount}%+ off`}</span>
+          <span>Up to 99% off</span>
         </div>
         <input
-          type="range" min={0} max={70} step={5} value={value.minDiscount}
-          onChange={(e) => onChange({ ...value, minDiscount: Number(e.target.value) })}
+          type="range"
+          min={0}
+          max={DISCOUNT_STOPS.length - 1}
+          step={1}
+          value={discountToIdx(value.minDiscount)}
+          onChange={(e) => onChange({ ...value, minDiscount: DISCOUNT_STOPS[Number(e.target.value)] ?? 0 })}
           className="w-full accent-[var(--color-primary)]"
         />
-        <div className="flex justify-between mt-1">
-          {[0, 10, 25, 50, 70].map((d) => (
+        <div className="flex justify-between mt-1.5">
+          {DISCOUNT_STOPS.map((d) => (
             <button
               key={d} type="button"
               onClick={() => onChange({ ...value, minDiscount: d })}

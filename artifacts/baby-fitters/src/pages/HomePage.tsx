@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Truck, ShieldCheck, Heart } from "lucide-react";
+import { ArrowRight, Sparkles, Truck, ShieldCheck, Heart, Tag, Loader2 } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { formatPrice } from "@/lib/categories";
@@ -157,6 +157,33 @@ export function HomePage() {
               </Link>
             </motion.div>
           ))}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: CATEGORIES.length * 0.05 }}
+          >
+            <Link
+              to="/sale"
+              className="group block rounded-3xl overflow-hidden relative aspect-square hover:shadow-pillow transition-all duration-500 hover:-translate-y-1 bg-gradient-to-br from-rose-200 via-pink-200 to-fuchsia-200"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <Tag className="w-7 h-7 text-rose-600" />
+                  </div>
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center">%</span>
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent group-hover:from-black/75 transition-all duration-500" />
+              <div className="absolute inset-0 flex flex-col justify-end p-4">
+                <p className="font-display text-white text-[15px] font-semibold leading-tight drop-shadow-lg">Sale &amp; Deals</p>
+                <p className="text-white/80 text-xs mt-1 inline-flex items-center gap-1 group-hover:text-white transition-colors font-medium">
+                  Shop now <ArrowRight className="w-3 h-3" />
+                </p>
+              </div>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -212,28 +239,82 @@ export function HomePage() {
             <p className="mt-3 text-muted-foreground text-[15px]">
               Subscribe for new arrivals, parenting tips, and a sweet 10% off your first order.
             </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Welcome to the cuddle club!", { description: "Check your inbox for your 10% off code." });
-                (e.target as HTMLFormElement).reset();
-              }}
-              className="mt-6 flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-            >
-              <input
-                type="email"
-                required
-                placeholder="your@email.com"
-                className="flex-1 px-5 py-3 rounded-full bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-[15px]"
-              />
-              <button className="px-6 py-3 rounded-full bg-foreground text-background font-bold text-[14px] hover:bg-primary transition-colors">
-                Subscribe
-              </button>
-            </form>
+            <SubscribeForm />
           </div>
         </div>
       </section>
     </PageLayout>
+  );
+}
+
+function SubscribeForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [code, setCode] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json as { message?: string }).message ?? "Something went wrong");
+      setCode((json as { code?: string }).code ?? "BABY10");
+      setEmailSent((json as { emailSent?: boolean }).emailSent ?? false);
+      setStatus("success");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setStatus("idle");
+    }
+  }
+
+  if (status === "success") {
+    return (
+      <div className="mt-6 max-w-md mx-auto">
+        <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-background/60 px-6 py-5 text-center">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-2">Your 10% off code</p>
+          <p className="font-display text-3xl font-bold tracking-widest text-primary">{code}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {emailSent ? "Also sent to your inbox — use at checkout!" : "Copy this code and use it at checkout!"}
+          </p>
+        </div>
+        <button
+          onClick={() => { setStatus("idle"); setEmail(""); setCode(""); setEmailSent(false); }}
+          className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Subscribe another email →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+      <input
+        type="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="your@email.com"
+        disabled={status === "loading"}
+        className="flex-1 px-5 py-3 rounded-full bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary text-[15px] disabled:opacity-60"
+      />
+      <button
+        type="submit"
+        disabled={status === "loading"}
+        className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-foreground text-background font-bold text-[14px] hover:bg-primary transition-colors disabled:opacity-60"
+      >
+        {status === "loading" ? (
+          <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+        ) : "Subscribe"}
+      </button>
+    </form>
   );
 }
 
