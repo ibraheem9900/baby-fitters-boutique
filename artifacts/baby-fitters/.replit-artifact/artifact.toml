@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Baby Fitters"
+version = "1.0.0"
+id = "artifacts/baby-fitters"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23898
+
+[services.development]
+run = "pnpm --filter @workspace/baby-fitters run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/baby-fitters", "run", "build" ]
+publicDir = "artifacts/baby-fitters/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23898"
+BASE_PATH = "/"
