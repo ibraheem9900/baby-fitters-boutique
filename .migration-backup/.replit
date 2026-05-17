@@ -1,6 +1,40 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-24", "python-3.11"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
 [agent]
+stack = "PNPM_WORKSPACE"
 expertMode = true
 
-[nix]
-channel = "stable-25_05"
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 23898
+externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "https://fpzplzqvduuawixwzvtj.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwenBsenF2ZHV1YXdpeHd6dnRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTU4NjgsImV4cCI6MjA5Mjc5MTg2OH0.ATzI2HIKrppYHN5QlEu1muGvd1GmibaZPWHa-32eX0Q"
+VITE_SUPABASE_PROJECT_ID = "fpzplzqvduuawixwzvtj"
+SUPABASE_URL = "https://fpzplzqvduuawixwzvtj.supabase.co"
