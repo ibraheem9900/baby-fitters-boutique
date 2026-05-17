@@ -250,8 +250,6 @@ export function HomePage() {
 function SubscribeForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success">("idle");
-  const [code, setCode] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -265,8 +263,6 @@ function SubscribeForm() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((json as { message?: string }).message ?? "Something went wrong");
-      setCode((json as { code?: string }).code ?? "BABY10");
-      setEmailSent((json as { emailSent?: boolean }).emailSent ?? false);
       setStatus("success");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -278,14 +274,14 @@ function SubscribeForm() {
     return (
       <div className="mt-6 max-w-md mx-auto">
         <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-background/60 px-6 py-5 text-center">
-          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-2">Your 10% off code</p>
-          <p className="font-display text-3xl font-bold tracking-widest text-primary">{code}</p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {emailSent ? "Also sent to your inbox — use at checkout!" : "Copy this code and use it at checkout!"}
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-2">You're in the club! 🎉</p>
+          <p className="font-display text-2xl font-semibold text-foreground">Check your inbox</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            We've sent your 10% discount code to <span className="font-semibold text-foreground">{email}</span>. Use it at checkout!
           </p>
         </div>
         <button
-          onClick={() => { setStatus("idle"); setEmail(""); setCode(""); setEmailSent(false); }}
+          onClick={() => { setStatus("idle"); setEmail(""); }}
           className="mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Subscribe another email →

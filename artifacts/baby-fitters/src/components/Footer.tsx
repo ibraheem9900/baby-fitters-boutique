@@ -1,10 +1,19 @@
 import { Link } from "wouter";
 import { useState } from "react";
-import { Instagram, Mail, Phone } from "lucide-react";
+import { Instagram, Mail, Phone, Facebook } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { SizeChartModal } from "./SizeChartModal";
 import { WHATSAPP_DISPLAY, SUPPORT_EMAIL, WHATSAPP_NUMBER } from "@/lib/whatsapp";
-import { NAV_GROUPS, slugifySub } from "@/lib/taxonomy";
+import { NAV_GROUPS } from "@/lib/taxonomy";
+
+const BROWSE_LINKS = [
+  { label: "Feeders & Sippers",  to: "/category/newborn_accessories/feeders-sippers" },
+  { label: "Body Suits & Vests", to: "/category/newborn_accessories/body-suit-vests" },
+  { label: "Shirts",             to: "/category/baby_garments/shirts?gender=boys" },
+  { label: "Tops/Blouse",        to: "/category/baby_garments/tops-blouse?gender=girls" },
+  { label: "Night Suits",        to: "/category/baby_garments/night-suits" },
+  { label: "Rompers",            to: "/category/baby_garments/rompers" },
+];
 
 export function Footer() {
   const [sizeOpen, setSizeOpen] = useState(false);
@@ -42,6 +51,15 @@ export function Footer() {
               className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
             >
               <Instagram className="w-4 h-4" />
+            </a>
+            <a
+              href="https://www.facebook.com/share/1YGafETq4c/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Baby Fitters on Facebook"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-300"
+            >
+              <Facebook className="w-4 h-4" />
             </a>
           </div>
         </div>
@@ -91,23 +109,16 @@ export function Footer() {
         <div className="md:col-span-3 md:col-start-11">
           <h4 className="eyebrow mb-5">Browse</h4>
           <ul className="space-y-2">
-            {NAV_GROUPS.filter((g) => g.slug !== "sale").flatMap((g) =>
-              g.columns.flatMap((col, ci) =>
-                col.items.slice(0, 2).map((item) => {
-                  const genderSuffix = col.gender ? `?gender=${col.gender}` : "";
-                  return (
-                    <li key={`${g.slug}-${ci}-${item}`}>
-                      <Link
-                        to={`/category/${g.slug}/${slugifySub(item)}${genderSuffix}`}
-                        className="text-[13px] text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  );
-                })
-              )
-            )}
+            {BROWSE_LINKS.map((item) => (
+              <li key={item.label}>
+                <Link
+                  to={item.to}
+                  className="text-[13px] text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

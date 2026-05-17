@@ -74,7 +74,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Sale / Deals",
     slug: "sale",
-    columns: [{ items: ["All Discounted Items", "25% Off", "50% Off", "70% Off"] }],
+    columns: [{ items: ["All Discounted Items", "Discount Up To 10%", "25% Off", "50% Off", "70% Off"] }],
   },
 ];
 

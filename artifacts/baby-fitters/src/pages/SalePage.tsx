@@ -29,7 +29,8 @@ export function SalePage() {
 
   const onSale = useMemo(() => {
     let list = (products ?? []).filter((p) => (p.discount_percent ?? 0) > 0);
-    if (sub === "25% Off") list = list.filter((p) => p.discount_percent >= 25);
+    if (sub === "Discount Up To 10%") list = list.filter((p) => p.discount_percent <= 10);
+    else if (sub === "25% Off") list = list.filter((p) => p.discount_percent >= 25);
     else if (sub === "50% Off") list = list.filter((p) => p.discount_percent >= 50);
     else if (sub === "70% Off") list = list.filter((p) => p.discount_percent >= 70);
     return list;

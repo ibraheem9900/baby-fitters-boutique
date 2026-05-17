@@ -1,0 +1,101 @@
+WITHOUT CHANGING, REMOVING, OR BREAKING ANY EXISTING FUNCTIONALITY OR DESIGN, properly implement and fix the following issues across the BabyFitters website.
+
+━━━━━━━━━━━━━━━━━━━
+
+1. CONTACT US SECTION DEPLOYMENT FIX
+   ━━━━━━━━━━━━━━━━━━━
+
+Currently the Contact Us section works correctly before deployment, but after deployment it stops working.
+
+I have already attached the console logs.
+
+Fix this issue properly using the provided console logs.
+
+Requirements:
+
+* Contact form must work properly after deployment
+* Messages should send successfully in production
+* No “Something went wrong” errors
+* Proper backend/API handling
+* Proper environment variable handling
+* Proper deployment configuration
+* Proper validation and error handling
+* Smooth loading and success states
+
+Do NOT break any existing functionality while fixing this.
+
+━━━━━━━━━━━━━━━━━━━
+2. FOOTER CATEGORY FIX
+━━━━━━━━━━━━━━━━━━━
+
+Inside the footer under the “Browse” section, ONLY these categories should appear:
+
+* Feeders & Sippers
+* Body Suits & Vests
+* Shirts
+* Tops/Blouse
+* Night Suits
+* Rompers
+
+No extra categories should appear other than these.
+
+━━━━━━━━━━━━━━━━━━━
+3. FACEBOOK LINK ADDITION
+━━━━━━━━━━━━━━━━━━━
+
+Add the Facebook link properly inside the footer social section exactly like the Instagram link.
+
+Facebook URL:
+
+https://www.facebook.com/share/1YGafETq4c/
+
+Requirements:
+
+* Proper Facebook icon
+* Proper clickable behavior
+* Same styling as Instagram icon
+* Responsive behavior
+* Smooth hover effects
+* Professional alignment inside footer
+
+━━━━━━━━━━━━━━━━━━━
+4. SALES & DEALS TEXT CHANGE
+━━━━━━━━━━━━━━━━━━━
+
+Inside the Sales & Deals section:
+
+Change the current “10% Discount” text to:
+
+“Discount Up To 10%”
+
+Apply this properly everywhere related to Sales & Deals promotions.
+
+━━━━━━━━━━━━━━━━━━━
+5. JOIN CUDDLE CLUB EMAIL CODE SYSTEM FIX
+━━━━━━━━━━━━━━━━━━━
+
+Currently when entering an email in the “Join Cuddle Club” section, the discount code appears directly on the website.
+
+This is incorrect.
+
+Fix this properly.
+
+Requirements:
+
+* When user enters email and subscribes:
+
+  * The discount code should be sent directly to the user’s email
+  * The code should NOT appear on the website
+  * Proper email delivery system should work
+  * Show proper success message after sending
+
+Requirements:
+
+* Proper email validation
+* Prevent invalid emails
+* Smooth loading state
+* Proper backend email integration
+* Professional user experience
+* Responsive behavior
+
+Everything must remain smooth, responsive, premium, and production-ready WITHOUT breaking any existing functionality.
