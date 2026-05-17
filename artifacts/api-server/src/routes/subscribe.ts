@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
@@ -17,7 +18,7 @@ router.post("/subscribe", async (req, res) => {
 
   if (supabaseUrl && supabaseKey) {
     try {
-      await fetch(`${supabaseUrl}/rest/v1/subscribers`, {
+      const supabaseResponse = await fetch(`${supabaseUrl}/rest/v1/subscribers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,7 +32,13 @@ router.post("/subscribe", async (req, res) => {
           subscribed_at: new Date().toISOString(),
         }),
       });
-    } catch {
+
+      if (!supabaseResponse.ok) {
+        const body = await supabaseResponse.text().catch(() => "");
+        logger.warn({ status: supabaseResponse.status, body }, "Supabase subscriber insert failed (table may not exist yet)");
+      }
+    } catch (err) {
+      logger.warn({ err }, "Could not reach Supabase for subscriber storage (non-fatal)");
     }
   }
 
